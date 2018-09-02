@@ -6,7 +6,7 @@ export ambari_server=$(hostname -f)
 export ambari_version=2.7.0.0
 export password=${password:-StrongPassword}
 export nifi_password=${nifi_password:-StrongPassword}
-bootstrap_url=https://raw.githubusercontent.com/ahadjidj-hw/HDF-assets/master/ambari-bootstrap-2.7
+bootstrap_url=https://raw.githubusercontent.com/ahadjidj/Streaming-Workshop-with-HDF/master/scripts/ambari-bootstrap-2.7.sh
 
 # Parameters for installing HDF with deploy-recommended-cluster
 export host_count=${host_count:-1}
