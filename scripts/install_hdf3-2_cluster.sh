@@ -51,7 +51,7 @@ sudo ambari-server setup --jdbc-db=mysql --jdbc-driver=/usr/share/java/mysql-con
 # change ambari password
 curl -iv -u admin:admin -H "X-Requested-By: blah" -X PUT -d "{ \"Users\": { \"user_name\": \"admin\", \"old_password\": \"admin\", \"password\": \"${ambari_password}\" }}" http://localhost:8080/api/v1/users/admin
 sudo ambari-server restart
-while ! echo exit | nc ${host} 8080; do echo "waiting for Ambari to be fully up..."; sleep 10; done
+while ! echo exit | nc ${ambari_server} 8080; do echo "waiting for Ambari to be fully up..."; sleep 10; done
 
 echo ""
 echo "#################################################"
