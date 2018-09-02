@@ -1,0 +1,37 @@
+create table customers (
+	id INT,
+	first_name VARCHAR(50),
+	last_name VARCHAR(50),
+	gender VARCHAR(50),
+	phone VARCHAR(50),
+	email VARCHAR(50),
+	countrycode VARCHAR(50),
+	country VARCHAR(50),
+	city VARCHAR(50),
+	state VARCHAR(50),
+	address VARCHAR(50),
+	zipcode VARCHAR(50),
+	ssn VARCHAR(50),
+	timezone VARCHAR(50),
+	currency VARCHAR(50)
+);
+insert into customers (id, first_name, last_name, gender, phone, email, countrycode, country, city, state, address, zipcode, ssn, timezone, currency) values (1, 'Maynord', 'Speechly', 'Male', '516-368-2050', 'mspeechly0@army.mil', 'US', 'United States', 'New Hyde Park', 'New York', '5 Hanson Hill', '11044', '459-71-7580', 'America/New_York', 'USD');
+insert into customers (id, first_name, last_name, gender, phone, email, countrycode, country, city, state, address, zipcode, ssn, timezone, currency) values (2, 'Durward', 'Polet', 'Male', '614-268-1788', 'dpolet1@indiegogo.com', 'US', 'United States', 'Columbus', 'Ohio', '9742 Drewry Hill', '43226', '178-75-3497', 'America/New_York', 'USD');
+insert into customers (id, first_name, last_name, gender, phone, email, countrycode, country, city, state, address, zipcode, ssn, timezone, currency) values (3, 'Shawn', 'Baldoni', 'Female', '267-287-8789', 'sbaldoni2@google.it', 'US', 'United States', 'Levittown', 'Pennsylvania', '57690 Larry Alley', '19058', '653-88-4923', 'America/New_York', 'USD');
+insert into customers (id, first_name, last_name, gender, phone, email, countrycode, country, city, state, address, zipcode, ssn, timezone, currency) values (4, 'Reider', 'Snassell', 'Male', '562-552-9167', 'rsnassell3@slashdot.org', 'US', 'United States', 'Whittier', 'California', '0 Commercial Circle', '90605', '272-57-4087', 'America/Los_Angeles', 'USD');
+insert into customers (id, first_name, last_name, gender, phone, email, countrycode, country, city, state, address, zipcode, ssn, timezone, currency) values (5, 'Zabrina', 'Tuckerman', 'Female', '713-303-9605', 'ztuckerman4@blinklist.com', 'US', 'United States', 'Houston', 'Texas', '55 Meadow Vale Avenue', '77206', '109-16-0565', 'America/Chicago', 'USD');
+insert into customers (id, first_name, last_name, gender, phone, email, countrycode, country, city, state, address, zipcode, ssn, timezone, currency) values (6, 'Erica', 'Ivasechko', 'Female', '512-268-8285', 'eivasechko5@free.fr', 'US', 'United States', 'Round Rock', 'Texas', '239 Vera Alley', '78682', '654-24-8723', 'America/Chicago', 'USD');
+insert into customers (id, first_name, last_name, gender, phone, email, countrycode, country, city, state, address, zipcode, ssn, timezone, currency) values (7, 'Hank', 'Allum', 'Male', '972-596-7193', 'hallum6@mysql.com', 'US', 'United States', 'Dallas', 'Texas', '20 Ludington Avenue', '75210', '809-39-6899', 'America/Chicago', 'USD');
+insert into customers (id, first_name, last_name, gender, phone, email, countrycode, country, city, state, address, zipcode, ssn, timezone, currency) values (8, 'Yoshiko', 'Caitlin', 'Female', '316-179-7854', 'ycaitlin7@economist.com', 'US', 'United States', 'Wichita', 'Kansas', '04 4th Court', '67236', '864-68-1896', 'America/Chicago', 'USD');
+insert into customers (id, first_name, last_name, gender, phone, email, countrycode, country, city, state, address, zipcode, ssn, timezone, currency) values (9, 'Boothe', 'Riddock', 'Male', '810-726-9806', 'briddock8@barnesandnoble.com', 'US', 'United States', 'Warren', 'Michigan', '70750 Manitowish Pass', '48092', '516-27-1197', 'America/Detroit', 'USD');
+insert into customers (id, first_name, last_name, gender, phone, email, countrycode, country, city, state, address, zipcode, ssn, timezone, currency) values (10, 'Goran', 'Tomley', 'Male', '915-682-8216', 'gtomley9@ifeng.com', 'US', 'United States', 'El Paso', 'Texas', '97 Browning Plaza', '88525', '741-08-6850', 'America/Denver', 'USD');
+insert into customers (id, first_name, last_name, gender, phone, email, countrycode, country, city, state, address, zipcode, ssn, timezone, currency) values (11, 'Kris', 'd''Arcy', 'Female', '912-377-3426', 'kdarcya@fastcompany.com', 'US', 'United States', 'Savannah', 'Georgia', '28 Manitowish Park', '31416', '285-87-2091', 'America/New_York', 'USD');
+insert into customers (id, first_name, last_name, gender, phone, email, countrycode, country, city, state, address, zipcode, ssn, timezone, currency) values (12, 'Faulkner', 'Elliston', 'Male', '313-375-3943', 'fellistonb@soundcloud.com', 'US', 'United States', 'Detroit', 'Michigan', '0 Larry Center', '48267', '324-97-4912', 'America/Detroit', 'USD');
+insert into customers (id, first_name, last_name, gender, phone, email, countrycode, country, city, state, address, zipcode, ssn, timezone, currency) values (13, 'Lonnard', 'Leban', 'Male', '202-867-0654', 'llebanc@cdc.gov', 'US', 'United States', 'Washington', 'District of Columbia', '34468 Rockefeller Drive', '20380', '459-86-6463', 'America/New_York', 'USD');
+insert into customers (id, first_name, last_name, gender, phone, email, countrycode, country, city, state, address, zipcode, ssn, timezone, currency) values (14, 'Wyatan', 'Hannon', 'Male', '917-954-4590', 'whannond@taobao.com', 'US', 'United States', 'New York City', 'New York', '2 Comanche Center', '10155', '559-28-1943', 'America/New_York', 'USD');
+insert into customers (id, first_name, last_name, gender, phone, email, countrycode, country, city, state, address, zipcode, ssn, timezone, currency) values (15, 'Andros', 'Allinson', 'Male', '419-718-9257', 'aallinsone@seattletimes.com', 'US', 'United States', 'Toledo', 'Ohio', '2 Melby Park', '43635', '240-63-6532', 'America/New_York', 'USD');
+insert into customers (id, first_name, last_name, gender, phone, email, countrycode, country, city, state, address, zipcode, ssn, timezone, currency) values (16, 'Bonnie', 'Hatzar', 'Female', '903-850-1286', 'bhatzarf@chicagotribune.com', 'US', 'United States', 'Tyler', 'Texas', '8 Comanche Lane', '75705', '527-71-2018', 'America/Chicago', 'USD');
+insert into customers (id, first_name, last_name, gender, phone, email, countrycode, country, city, state, address, zipcode, ssn, timezone, currency) values (17, 'Alley', 'Watsam', 'Male', '916-198-6445', 'awatsamg@bravesites.com', 'US', 'United States', 'Sacramento', 'California', '917 Surrey Avenue', '95833', '892-54-0662', 'America/Los_Angeles', 'USD');
+insert into customers (id, first_name, last_name, gender, phone, email, countrycode, country, city, state, address, zipcode, ssn, timezone, currency) values (18, 'Carmine', 'Kleehuhler', 'Male', '702-648-6655', 'ckleehuhlerh@pcworld.com', 'US', 'United States', 'Las Vegas', 'Nevada', '6355 Harbort Hill', '89178', '154-23-3068', 'America/Los_Angeles', 'USD');
+insert into customers (id, first_name, last_name, gender, phone, email, countrycode, country, city, state, address, zipcode, ssn, timezone, currency) values (19, 'Vin', 'Duell', 'Male', '315-865-6424', 'vduelli@accuweather.com', 'US', 'United States', 'Syracuse', 'New York', '12864 Acker Court', '13251', '135-58-9324', 'America/New_York', 'USD');
+insert into customers (id, first_name, last_name, gender, phone, email, countrycode, country, city, state, address, zipcode, ssn, timezone, currency) values (20, 'Annemarie', 'Whittick', 'Female', '713-776-7785', 'awhittickj@sourceforge.net', 'US', 'United States', 'Houston', 'Texas', '86865 David Crossing', '77090', '814-69-6530', 'America/Chicago', 'USD');
