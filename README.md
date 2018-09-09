@@ -1,8 +1,8 @@
 # Streaming-Workshop-with-HDF
 
 # Contents
-- [Intro](#Intro) - Workshop Introduction
-- [Use Case](#Use-Case) - 360 customer view in retail
+- [Introduction](#Introduction) - Workshop Introduction
+- [Use case](#Use-case) - Building a 360 view for customers
 - [Lab 1](#lab-1) - Workshop preparation
   - Create an HDF 3.2 cluster
   - Access your cluster
@@ -20,7 +20,7 @@ The objective of this workshop is to build an end to end streaming use case with
 - Integration between NiFi and Kafka to benefit from latest Kafka improvments (transactions, message headers, etc)
 - Test mode in Stream Analytics Manager to mock a streaming application before deploying it
 
-# Use case description
+# Use case
 
 In this workshop, we will build a simplified streaming use case for a retail company. We will ingest data from MySQL Database and web apps logs to build a 360 view of a customer in realtime. This data can be stored on modern databases such as HDP or ElasticSearch to offer more scalability and agility compared to legacy DBs. Based on this two data streams, we will implement a fraud detection algorithm based on business rule. For instance, if a user update his account (for instance address) and buy an item that's expensive than his usual expenses, we may decide to investigate. This can be a sign that his account has been hacked and used to buy an expensive item that will be shipped to a new address. The following picture explains the high level architecture of the use case.
 
