@@ -3,13 +3,14 @@
 # Contents
 - [Introduction](#introduction) - Workshop Introduction
 - [Use case](#use-case) - Building a 360 view for customers
-- [Lab 1](#lab-1) - Cluster preparation
+- [Lab 1](#lab-1) - Cluster installation
   - Create an HDF 3.2 cluster
   - Access your cluster
-- [Lab 2](#lab-2) - Development preparation (admin persona)
+- [Lab 2](#lab-2) - Platform preparation (admin persona)
   - Create schemas in Schema Registry
   - Create record readers and writters in NiFi
   - Create process groups and variables in NiFi
+  - Create 
 
   
   ---------------
@@ -168,5 +169,26 @@ For the schema text, use the following Avro description, also available [here](h
   ```
 ## Create record readers and writters in NiFi
 
+To use these schema in NiFi, we will leverage record based processor. These processors use record readers and writter to benefit from improved performances and schemas defined globally in a Schema Registry. Our sources (MySQL CDC event and Web App logs) generate data in JSON format so we will need a JSON reader to deserialise data. We will store this data in ElasticSearch and publish it to Kafka. Hence, we need JSON and Avro writters to serialize the data. To add a reader/writter accessible by all our NiFi flows, navigate to the canvas, click on Configure, Controller service and click on "+" button.
 
-  - Create process groups and variables in NiFi
+### Add a HortonworksSchemaRegistry
+Before adding any record reader/writter, we need to add a Hortonworks Schema Registry to tell NiFi where to look for schemas definition. Add a HortonworksSchemaRegistry controller and congure it with your SR URL as show below:
+
+![Image](https://github.com/ahadjidj/Streaming-Workshop-with-HDF/raw/master/images/HortonworksSchemaRegistry.png)
+
+### Add JsonTreeReader
+To deserialize any JSON data for which we have a schema, add a JsonTreeReader and configure it as shown below. Note the that the **Schema Access Strategy** is set to **Use 'Schema Name' Property**. This means that flow files going through this serializer must have an attribute **schema.name** that specifies the name of the schema that should be used.
+
+![Image](https://github.com/ahadjidj/Streaming-Workshop-with-HDF/raw/master/images/JsonTreeReader.png)
+
+### Add JsonRecordSetWriter
+To serialize JSON data for which we have a defined schema, add a JsonRecordSetWriter and configure it as shown below.
+
+![Image](https://github.com/ahadjidj/Streaming-Workshop-with-HDF/raw/master/images/JsonRecordSetWriter.png)
+
+### Add AvroRecordSetWriter
+Event collected by NiFi will be published to Kafka for further consumption. In the second use case, we will use SAM to analyse data in realtime and detect potential frauds. SAM expects event to be in Avro format with the first byte containing an encoded schema reference. To prepare data for SAM consumption, we need to add AvroRecordSetWriter and set **Schema Write Strategy** to **HWX Content-Encoded Schema Reference** as shown below:
+
+![Image](https://github.com/ahadjidj/Streaming-Workshop-with-HDF/raw/master/images/AvroRecordSetWriter.png)
+
+## Create process groups and variables in NiFi
