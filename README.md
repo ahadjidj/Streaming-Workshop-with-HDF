@@ -77,7 +77,7 @@ These events are data coming from the MySQL DB through the CDC layer. Each event
   - Compatibility: both
   - Evolve: true
  
- For the schema text, use the Avro description available [here](https://raw.githubusercontent.com/ahadjidj/Streaming-Workshop-with-HDF/master/schemas/customers.asvc)
+ For the schema text, use the following Avro description, also available [here](https://raw.githubusercontent.com/ahadjidj/Streaming-Workshop-with-HDF/master/schemas/customers.asvc)
  
   ```
 {
@@ -101,7 +101,8 @@ These events are data coming from the MySQL DB through the CDC layer. Each event
     {"name": "currency", "type": ["null", "string"]},
     {"name": "averagebasket", "type": ["null", "int"]}
   ]
-}  ```
+} 
+  ```
 
   - 
   - Create record readers and writters in NiFi
