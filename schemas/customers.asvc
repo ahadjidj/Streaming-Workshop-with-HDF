@@ -1,0 +1,22 @@
+{
+  "type": "record",
+  "name": "customers",
+  "fields" : [
+    {"name": "id", "type": "int"},
+    {"name": "first_name", "type": ["null", "string"]},
+    {"name": "last_name", "type": ["null", "string"]},
+    {"name": "gender", "type": ["null", "string"]},
+    {"name": "phone", "type": ["null", "string"]},   
+    {"name": "email", "type": ["null", "string"]},    
+    {"name": "countrycode", "type": ["null", "string"]},
+    {"name": "country", "type": ["null", "string"]},
+    {"name": "city", "type": ["null", "string"]},
+    {"name": "state", "type": ["null", "string"]},
+    {"name": "address", "type": ["null", "string"]},
+    {"name": "zipcode", "type": ["null", "string"]},
+    {"name": "ssn", "type": ["null", "string"]},
+    {"name": "timezone", "type": ["null", "string"]},
+    {"name": "currency", "type": ["null", "string"]},
+    {"name": "averagebasket", "type": ["null", "int"]}
+  ]
+}
