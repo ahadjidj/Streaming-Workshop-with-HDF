@@ -10,7 +10,8 @@
   - Create schemas in Schema Registry
   - Create record readers and writters in NiFi
   - Create process groups and variables in NiFi
-  - Create 
+  - Create events topics in Kafka
+  - Create environment and service pool in SAM
 
   
   ---------------
@@ -216,4 +217,18 @@ elastic.url : http://localhost:9200
 kafka.url : hdfcluster0.field.hortonworks.com:6667
   ```  
   - Agent1_LogsIngestion is the template that will be deployed in each MiNiFi agent for log ingestion. This PG don't use any variable.
-  
+ 
+ ## Create events topics in Kafka
+ 
+ As an admin, we need to provision Kafka topics and define their access policies. Use the following instructions to create the topics that we will use. In the future, topic provisioning will be possible through SMM.
+
+  ```
+/usr/hdf/current/kafka-broker/bin/kafka-topics.sh --zookeeper hdfcluster0.field.hortonworks.com:2181 --create --topic customers --partitions 1 --replication-factor 1
+/usr/hdf/current/kafka-broker/bin/kafka-topics.sh --zookeeper hdfcluster0.field.hortonworks.com:2181 --create --topic logs --partitions 1 --replication-factor 1
+/usr/hdf/current/kafka-broker/bin/kafka-topics.sh --zookeeper hdfcluster0.field.hortonworks.com:2181 --create --topic alerts --partitions 1 --replication-factor 1
+
+  ```  
+ ## Create service pool and application environment in SAM  
+Finally, we need to provision a service pool and an environment in SAM for our application. For the service pool, use the HDF cluster URL : http://hdfcluster0.field.hortonworks.com:8080/api/v1/clusters/hdfcluster
+
+![Image](https://github.com/ahadjidj/Streaming-Workshop-with-HDF/raw/master/images/ServicePool.png)
