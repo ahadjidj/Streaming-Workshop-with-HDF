@@ -12,13 +12,13 @@
 # Introduction
 
 The objective of this workshop is to build an end to end streaming use case with HDF. This include edge collection, flow management and stream processing. A focus is also put on governance and best practices using tools such Schema Registry, Flow Registry and Variable Registry. At the end of the workshop, you will understand why HDF is a complete streaming platform that offers entreprise features to build, test and deploy any advanced streaming application. In addition, you will learn details on some of the new features brought by the latest HDF versions:
-- Use NiFi to ingest CDC data in real time
-- Use Record processors to benefit from improved performance and integration with schema registry
-- Route and filter data using SQL
-- Deploy and use MiNiFi agents with NiFi
-- Version flow developments and propagate flows from dev to prod
-- Integration between NiFi and Kafka to benefit from latest Kafka improvments (transactions, message headers, etc)
-- Test mode in Stream Analytics Manager to mock a streaming application before deploying it
+  - Use NiFi to ingest CDC data in real time
+  - Use Record processors to benefit from improved performance and integration with schema registry
+  - Route and filter data using SQL
+ - Deploy and use MiNiFi agents with NiFi
+  - Version flow developments and propagate flows from dev to prod
+  - Integration between NiFi and Kafka to benefit from latest Kafka improvments (transactions, message headers, etc)
+  - Test mode in Stream Analytics Manager to mock a streaming application before deploying it
 
 # Use case
 
@@ -32,9 +32,9 @@ Image to add
 
 For the coming labs, we will install a one node HDF cluster with NiFi, NiFi Registry, Kafka, Storm, Schema Registry and Stream Analytics Manager. We will use field cloud for this workshop but the instructions will work for any cloud provider (AWS for instance).
 
-- Connect to your OpenStack account on field cloud and create a VM with 16 GB of RAM (this corresponds to a m3.xlarge instance). Keep the default parameters and num_vms to 1. Note the stack name that you defined as it will be used to access to your cluster. Let's assume that your stack name is hdfcluster.
-- SSH to your cluster using the field PEM key ``` ssh -i field.pem centos@hdfcluster0.field.hortonworks.com ```
-- Launch the cluster install using with the following instruction
+  - Connect to your OpenStack account on field cloud and create a VM with 16 GB of RAM (this corresponds to a m3.xlarge instance). Keep the default parameters and num_vms to 1. Note the stack name that you defined as it will be used to access to your cluster. Let's assume that your stack name is hdfcluster.
+  - SSH to your cluster using the field PEM key ``` ssh -i field.pem centos@hdfcluster0.field.hortonworks.com ```
+  - Launch the cluster install using with the following instruction
   ```
   curl -sSL https://raw.githubusercontent.com/ahadjidj/Streaming-Workshop-with-HDF/master/scripts/install_hdf3-2_cluster.sh | sudo -E sh
   ```
@@ -42,8 +42,8 @@ This instruction downloads and runs a script that initialize install a MySQL Dat
 
 ## Access your Cluster
 
-- When the script finishes the work, login to Ambari web UI by opening http://{YOUR_IP}:8080 and log in with **admin/StrongPassword**
-- Open the different UI and check that all services are running and are healthy (NiFi, NiFi Registry, SR, SAM, etc)
-- Connect to the MySQL DB using bash or tools like MySQLWorkbench. A workshop DB has been created for the lab. You have also two users:
- - **root/StrongPassword** usable from localhost only
- - **workshop/StrongPassword** usable from remote and has full privileges on the workshop DB 
+  - When the script finishes the work, login to Ambari web UI by opening http://{YOUR_IP}:8080 and log in with **admin/StrongPassword**
+  - Open the different UI and check that all services are running and are healthy (NiFi, NiFi Registry, SR, SAM, etc)
+  - Connect to the MySQL DB using bash or tools like MySQLWorkbench. A workshop DB has been created for the lab. You have also two users:
+    - **root/StrongPassword** usable from localhost only
+    - **workshop/StrongPassword** usable from remote and has full privileges on the workshop DB 
