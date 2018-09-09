@@ -77,7 +77,7 @@ These events are data coming from the MySQL DB through the CDC layer. Each event
   - Compatibility: both
   - Evolve: true
  
- For the schema text, use the following Avro description, also available [here](https://raw.githubusercontent.com/ahadjidj/Streaming-Workshop-with-HDF/master/schemas/customers.asvc)
+For the schema text, use the following Avro description, also available [here](https://raw.githubusercontent.com/ahadjidj/Streaming-Workshop-with-HDF/master/schemas/customers.asvc)
  
   ```
 {
@@ -103,7 +103,70 @@ These events are data coming from the MySQL DB through the CDC layer. Each event
   ]
 } 
   ```
+### Logs events
 
-  - 
-  - Create record readers and writters in NiFi
+These events are data coming from Web Application through the MiNiFi agents deployed on application servers. Each event, describe a customer browsing behavior on a webpage. The provided informations are the customer id, the product page being consulted, session duration and if the customer bought the product at the end of the session or not. To declare this schema, go to Schema Registry and add a new schema with these details:
+  - Name: logs
+  - Descrption: schema for logs events
+  - Type: Avro Schema Provider
+  - Schema Group: Kafka
+  - Compatibility: both
+  - Evolve: true
+ 
+ For the schema text, use the following Avro description, also available [here](https://raw.githubusercontent.com/ahadjidj/Streaming-Workshop-with-HDF/master/schemas/logs.asvc)
+ 
+  ```
+{
+  "type": "record",
+  "name": "logs",
+  "fields" : [
+    {"name": "id", "type": "int"},
+    {"name": "product", "type": ["null", "string"]},
+    {"name": "sessionduration", "type": ["null", "int"]},
+    {"name": "buy", "type": ["null", "boolean"]},
+    {"name": "price", "type": ["null", "int"]}
+  ]
+}
+  ```
+We need also to define another logs event (logs_view) that conains only the product browsing session information with the buy and price fields.
+
+  ```
+{
+  "type": "record",
+  "name": "logs",
+  "fields" : [
+    {"name": "id", "type": "int"},
+    {"name": "product", "type": ["null", "string"]},
+    {"name": "sessionduration", "type": ["null", "int"]}
+  ]
+}
+  ```
+### Alerts events
+
+At the end of the workshop, we will use the different events to detect eventual frauds. If a fraud is detected, we will send an event to inform an application or a supervisor. To achieve this, we need a new schema for these events. To declare this schema, go to Schema Registry and add a new schema with these details:
+  - Name: alerts
+  - Descrption: schema for alerts events
+  - Type: Avro Schema Provider
+  - Schema Group: Kafka
+  - Compatibility: both
+  - Evolve: true
+ 
+For the schema text, use the following Avro description, also available [here](https://raw.githubusercontent.com/ahadjidj/Streaming-Workshop-with-HDF/master/schemas/alerts.asvc)
+ 
+  ```
+{
+  "type": "record",
+  "name": "alerts",
+  "fields" : [
+    {"name": "_id", "type": "int"},
+    {"name": "price", "type": ["null", "int"]},
+    {"name": "first_name", "type": ["null", "string"]},
+    {"name": "last_name", "type": ["null", "string"]},
+    {"name": "averagebasket", "type": ["null", "int"]}
+  ]
+}
+  ```
+## Create record readers and writters in NiFi
+
+
   - Create process groups and variables in NiFi
