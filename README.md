@@ -17,7 +17,6 @@
   - Ingest and format data in NiFi
   - Store events in ElasticSearch
   - Publish update events in Kafka
-  - Test everything
   
   ---------------
 # Introduction
@@ -317,3 +316,6 @@ Note how easy it is to use Record based processor now that we have prepared our 
 Open ElasticSearch UI and check that your customer data has been indexed : http://hdfcluster0.field.hortonworks.com:9200/customers/_search?pretty
 
 ## Publish update events in Kafka
+The last step for this lab is to publish Insert events in Kafka. This event will be used by SAM to check if there's a risk of fraud. Hence, we need to use Avro record writter in the Kafka processor configuration.
+
+![Image](https://github.com/ahadjidj/Streaming-Workshop-with-HDF/raw/master/images/KafkaPublish1.png)
