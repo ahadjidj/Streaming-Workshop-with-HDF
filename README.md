@@ -3,9 +3,13 @@
 # Contents
 - [Introduction](#introduction) - Workshop Introduction
 - [Use case](#use-case) - Building a 360 view for customers
-- [Lab 1](#lab-1) - Workshop preparation
+- [Lab 1](#lab-1) - Cluster preparation
   - Create an HDF 3.2 cluster
   - Access your cluster
+- [Lab 2](#lab-2) - Development preparation (admin persona)
+  - Create schemas in Schema Registry
+  - Create record readers and writters in NiFi
+  - Create process groups and variables in NiFi
 
   
   ---------------
@@ -15,7 +19,7 @@ The objective of this workshop is to build an end to end streaming use case with
   - Use NiFi to ingest CDC data in real time
   - Use Record processors to benefit from improved performance and integration with schema registry
   - Route and filter data using SQL
- - Deploy and use MiNiFi agents with NiFi
+  - Deploy and use MiNiFi agents with NiFi
   - Version flow developments and propagate flows from dev to prod
   - Integration between NiFi and Kafka to benefit from latest Kafka improvments (transactions, message headers, etc)
   - Test mode in Stream Analytics Manager to mock a streaming application before deploying it
@@ -38,7 +42,7 @@ For the coming labs, we will install a one node HDF cluster with NiFi, NiFi Regi
   ```
   curl -sSL https://raw.githubusercontent.com/ahadjidj/Streaming-Workshop-with-HDF/master/scripts/install_hdf3-2_cluster.sh | sudo -E sh
   ```
-This instruction downloads and runs a script that initialize install a MySQL Database, Ambari agent and server, ElasticSearch, HDF MPack and HDF services required for this workshop. Cluster installation will take about 10 minutes.
+This instruction downloads and runs a script that initialize install a MySQL Database, ElasticSearch, MiNiFi, Ambari agent and server,  HDF MPack and HDF services required for this workshop. Cluster installation will take about 10 minutes.
 
 ## Access your Cluster
 
@@ -47,3 +51,58 @@ This instruction downloads and runs a script that initialize install a MySQL Dat
   - Connect to the MySQL DB using bash or tools like MySQLWorkbench. A workshop DB has been created for the lab. You have also two users:
     - **root/StrongPassword** usable from localhost only
     - **workshop/StrongPassword** usable from remote and has full privileges on the workshop DB 
+    
+# Lab 2
+
+To enforce best practices and a minimal governance, there are few tasks that an admin should do before granting access to the platform. These tasks include:
+  - Defining users roles and previliges on each tool (SAM, NiFi, Etc)
+  - Define the schemas of events that we be used. This avoid having developpers using their own schemas making applications integration and evolution a real nightmare.
+  - Define and enforce naming convention that make easier managing applications lifecycle (eg. NiFi PG and processors names)
+  - Define global variables that should be used to make application migration between environment simple
+  - etc
+
+In this lab, we will implement some of these best practices to set the right environnement for our developments.
+
+## Create schemas in Schema Registry
+
+In this workshop, we will manipulate three type of events.
+
+### Customer events
+
+These events are data coming from the MySQL DB through the CDC layer. Each event has different fields describing the customer (id, first name, last name, etc). To declare this schema, go to Schema Registry and add a new schema with these details:
+  - Name: customers
+  - Descrption: schema for CDC events
+  - Type: Avro Schema Provider
+  - Schema Group: Kafka
+  - Compatibility: both
+  - Evolve: true
+ 
+ For the schema text, use the Avro description available [here](https://raw.githubusercontent.com/ahadjidj/Streaming-Workshop-with-HDF/master/schemas/customers.asvc)
+ 
+  ```
+{
+  "type": "record",
+  "name": "customers",
+  "fields" : [
+    {"name": "id", "type": "int"},
+    {"name": "first_name", "type": ["null", "string"]},
+    {"name": "last_name", "type": ["null", "string"]},
+    {"name": "gender", "type": ["null", "string"]},
+    {"name": "phone", "type": ["null", "string"]},   
+    {"name": "email", "type": ["null", "string"]},    
+    {"name": "countrycode", "type": ["null", "string"]},
+    {"name": "country", "type": ["null", "string"]},
+    {"name": "city", "type": ["null", "string"]},
+    {"name": "state", "type": ["null", "string"]},
+    {"name": "address", "type": ["null", "string"]},
+    {"name": "zipcode", "type": ["null", "string"]},
+    {"name": "ssn", "type": ["null", "string"]},
+    {"name": "timezone", "type": ["null", "string"]},
+    {"name": "currency", "type": ["null", "string"]},
+    {"name": "averagebasket", "type": ["null", "int"]}
+  ]
+}  ```
+
+  - 
+  - Create record readers and writters in NiFi
+  - Create process groups and variables in NiFi
