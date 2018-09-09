@@ -12,7 +12,12 @@
   - Create process groups and variables in NiFi
   - Create events topics in Kafka
   - Create environment and service pool in SAM
-
+- [Lab 3](#lab-3) - MySQL CDC data ingestion (Dev persona)
+  - Configure MySQL to enable binary logs
+  - Ingest and format data in NiFi
+  - Store events in ElasticSearch
+  - Publish update events in Kafka
+  - Test everything
   
   ---------------
 # Introduction
@@ -203,6 +208,7 @@ It's critical to well organize your flows when you have a shared NiFi instance. 
 mysql.driver.location : /usr/share/java/mysql-connector-java.jar
 mysql.username : root
 mysql.serverid : 123
+mysql.host : 127.0.0.1:3306
 source.schema : customers
 elastic.url : http://localhost:9200
 kafka.url : hdfcluster0.field.hortonworks.com:6667
@@ -232,3 +238,59 @@ kafka.url : hdfcluster0.field.hortonworks.com:6667
 Finally, we need to provision a service pool and an environment in SAM for our application. For the service pool, use the HDF cluster URL : http://hdfcluster0.field.hortonworks.com:8080/api/v1/clusters/hdfcluster
 
 ![Image](https://github.com/ahadjidj/Streaming-Workshop-with-HDF/raw/master/images/ServicePool.png)
+
+# Lab 3
+
+In this lab, we will use NiFi to ingest CDC data from MySQL. The MySQL DB has a table that stores information on our customers. We would like to receive each change in the table as an event (insert, update, etc) and use with other source to build a customer 360 view in ElasticSearch. The high level flow can be described as follows:
+
+  - Listen to events from MySQL (SRC1_CDCMySQL)
+  - Keep only Insert and Delete events and format them in a usable JSON format (SRC1_RouteSQLVerbe to SRC1_SetSchemaName)
+  - Insert and update customer data in ElasticSearch (SRC1_MergeRecord to SRC1PutElasticRecord)
+  - Publish update event in Kafka to use them for fraud detection use cases (SRC1_PublishKafkaUpdate)
+  
+![Image](https://github.com/ahadjidj/Streaming-Workshop-with-HDF/raw/master/images/UC1.png)
+
+## Configure MySQL to enable binary logs
+NiFi has a natif CDC feature for MySQL databases. To use it, the MySQL DB must be configured to use binary logs. Use the following instructions to enable binary log for the workshop DB and use ROW format CDC events.
+
+  ```
+sudo bash -c 'sudo cat <<EOF >> /etc/my.cnf
+server_id = 1
+log_bin = delta
+binlog_format=row
+binlog_do_db = workshop
+EOF'
+
+sudo systemctl restart mysqld.service
+  ``` 
+
+## Ingest and format data in NiFi
+Add a CaptureChangeMySQL processor and configure it as follows:
+
+![Image](https://github.com/ahadjidj/Streaming-Workshop-with-HDF/raw/master/images/CDC.png)
+
+Note that we are leveraging the variables we defined previously. 
+
+The CDC processor can be configured to listen to some events only. In our use case, we won't use Begin/Commit/DDL statements. But for teaching purposes, we will receive then filter them later. Add a RouteOnAttribute processor and configure it as follows:
+
+![Image](https://github.com/ahadjidj/Streaming-Workshop-with-HDF/raw/master/images/Route1.png)
+
+At this level, you can generate some data to see how CDC events looks like. Use the following instructions to insert 10 customers to the MySQL DB:
+
+  ```
+curl "https://raw.githubusercontent.com/ahadjidj/Streaming-Workshop-with-HDF/master/scripts/create-customers-table.sql" > "create-customers-table.sql"
+
+mysql -h localhost -u workshop -p"StrongPassword" --database=workshop < create-customers-table.sql
+  ``` 
+
+Use the different relations to see how data looks like for each event. Use only insert and update relations for the next steps and add an EvaluatteJsonPath processor to extract the table name.
+
+![Image](https://github.com/ahadjidj/Streaming-Workshop-with-HDF/raw/master/images/ExtractTableName.png)
+
+## Store events in ElasticSearch
+
+## Publish update events in Kafka
+
+## Test everything
+
+
