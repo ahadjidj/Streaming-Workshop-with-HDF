@@ -1,0 +1,11 @@
+{
+  "type": "record",
+  "name": "logs",
+  "fields" : [
+    {"name": "id", "type": "int"},
+    {"name": "product", "type": ["null", "string"]},
+    {"name": "sessionduration", "type": ["null", "int"]},
+    {"name": "buy", "type": ["null", "boolean"]},
+    {"name": "price", "type": ["null", "int"]}
+  ]
+}
