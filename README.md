@@ -2,7 +2,7 @@
 
 # Contents
 - [Intro](#Intro) - Workshop Introduction
-- [UC](#UC) - Use case description
+- [Use_Case](#Use Case) - 360 customer view in retail
 - [Lab 1](#lab-1) - Workshop preparation
   - Create an HDF 3.2 cluster
   - Access your cluster
