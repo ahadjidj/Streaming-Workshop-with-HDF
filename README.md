@@ -1,8 +1,8 @@
 # Streaming-Workshop-with-HDF
 
 # Contents
-- [Introduction](#Introduction) - Workshop Introduction
-- [Use case](#Use-case) - Building a 360 view for customers
+- [Introduction](#introduction) - Workshop Introduction
+- [Use case](#use-case) - Building a 360 view for customers
 - [Lab 1](#lab-1) - Workshop preparation
   - Create an HDF 3.2 cluster
   - Access your cluster
