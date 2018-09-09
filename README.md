@@ -225,7 +225,7 @@ kafka.url : hdfcluster0.field.hortonworks.com:6667
   - Agent1_LogsIngestion is the template that will be deployed in each MiNiFi agent for log ingestion. This PG don't use any variable.
  
  ## Create events topics in Kafka
- 
+
  As an admin, we need to provision Kafka topics and define their access policies. Use the following instructions to create the topics that we will use. In the future, topic provisioning will be possible through SMM.
 
   ```
@@ -240,7 +240,6 @@ Finally, we need to provision a service pool and an environment in SAM for our a
 ![Image](https://github.com/ahadjidj/Streaming-Workshop-with-HDF/raw/master/images/ServicePool.png)
 
 # Lab 3
-
 In this lab, we will use NiFi to ingest CDC data from MySQL. The MySQL DB has a table that stores information on our customers. We would like to receive each change in the table as an event (insert, update, etc) and use with other source to build a customer 360 view in ElasticSearch. The high level flow can be described as follows:
 
   - Listen to events from MySQL (SRC1_CDCMySQL)
@@ -287,10 +286,34 @@ Use the different relations to see how data looks like for each event. Use only 
 
 ![Image](https://github.com/ahadjidj/Streaming-Workshop-with-HDF/raw/master/images/ExtractTableName.png)
 
+As you can see, each event has lot of additional information that are not useful for us. To keep only data on our new customers, we can use a JoltTransformationProcessor with the following Jolt specification:
+
+  ```
+[
+  {
+    "operation": "shift",
+    "spec": {
+      "columns": {
+        "*": {
+          "@(value)": "[#1].@(1,name)"
+        }
+      }
+    }
+  }
+]
+  ``` 
+Now that we have our target data in Json format, let's add an attribute schema.name with the value ${source.schema} to prepare for using Record based processors and our customers schema defined in SR.
+
 ## Store events in ElasticSearch
+Before storing data in ES, let's separate between Insert and Updates events first. This is not required since the PutElasticSearchRecord processor supports both insert and update operations. But for other processors, this may be required. Also, some CDC tools generate different schema for insert and update operations so routing data is required. 
+
+Add a RouteOnAttribute processor as previously and separate between inserts and updates. For each type of event, add a MergeRecord and PutElasticSearchHttpRecord configured as follows. Use Index operation for insert event and update operation for update events.
+
+![Image](https://github.com/ahadjidj/Streaming-Workshop-with-HDF/raw/master/images/Merge.png)
+![Image](https://github.com/ahadjidj/Streaming-Workshop-with-HDF/raw/master/images/PutES.png)
+
+Note how easy it is to use Record based processor now that we have prepared our Schema and Reader/Writter.
+
+Open ElasticSearch UI and check that your customer data has been indexed : http://hdfcluster0.field.hortonworks.com:9200/customers/_search?pretty
 
 ## Publish update events in Kafka
-
-## Test everything
-
-
