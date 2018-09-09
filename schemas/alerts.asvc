@@ -1,0 +1,11 @@
+{
+  "type": "record",
+  "name": "alerts",
+  "fields" : [
+    {"name": "_id", "type": "int"},
+    {"name": "price", "type": ["null", "int"]},
+    {"name": "first_name", "type": ["null", "string"]},
+    {"name": "last_name", "type": ["null", "string"]},
+    {"name": "averagebasket", "type": ["null", "int"]}
+  ]
+}
