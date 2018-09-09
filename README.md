@@ -192,3 +192,28 @@ Event collected by NiFi will be published to Kafka for further consumption. In t
 ![Image](https://github.com/ahadjidj/Streaming-Workshop-with-HDF/raw/master/images/AvroRecordSetWriter.png)
 
 ## Create process groups and variables in NiFi
+It's critical to well organize your flows when you have a shared NiFi instance. Usually, NiFi flows are organized per data sources where each Process Group defines the pipeline for each source. If you have several flow developpers working on different projects, you can assign roles and privileges to each one of them. The PG organisation is also usefull to declare variables for each source or project and make flow migration from one environment to another one easier. In this workshop, we will define 3 PGs as shown below. Note the naming convention (sourceID_description) that will be useful for flows migration and monitoring.
+
+![Image](https://github.com/ahadjidj/Streaming-Workshop-with-HDF/raw/master/images/PGS.png)
+
+  - SRC1_CDCIngestion to ingest data from MySQL. This PG will use the following variables. For instance, we can change the variable elastic.url from localhost to the production Elastic cluster URL in a central location instead of updating every Elastic processor.
+  
+  ```
+mysql.driver.location : /usr/share/java/mysql-connector-java.jar
+mysql.username : root
+mysql.serverid : 123
+source.schema : customers
+elastic.url : http://localhost:9200
+kafka.url : hdfcluster0.field.hortonworks.com:6667
+  ```  
+![Image](https://github.com/ahadjidj/Streaming-Workshop-with-HDF/raw/master/images/PG1.png)
+
+  - SRC2_LogsIngestion to ingest data from Web applications. This PG will use the following variables:
+  
+  ```
+source.schema : logs
+elastic.url : http://localhost:9200
+kafka.url : hdfcluster0.field.hortonworks.com:6667
+  ```  
+  - Agent1_LogsIngestion is the template that will be deployed in each MiNiFi agent for log ingestion. This PG don't use any variable.
+  
