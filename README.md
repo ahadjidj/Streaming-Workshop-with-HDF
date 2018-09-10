@@ -241,7 +241,7 @@ Finally, we need to provision a service pool and an environment in SAM for our a
 # Lab 3
 In this lab, we will use NiFi to ingest CDC data from MySQL. The MySQL DB has a table that stores information on our customers. We would like to receive each change in the table as an event (insert, update, etc) and use with other source to build a customer 360 view in ElasticSearch. The high level flow can be described as follows:
 
-  - Listen to events from MySQL (SRC1_CDCMySQL)
+  - Ingest events from MySQL (SRC1_CDCMySQL)
   - Keep only Insert and Delete events and format them in a usable JSON format (SRC1_RouteSQLVerbe to SRC1_SetSchemaName)
   - Insert and update customer data in ElasticSearch (SRC1_MergeRecord to SRC1PutElasticRecord)
   - Publish update event in Kafka to use them for fraud detection use cases (SRC1_PublishKafkaUpdate)
@@ -267,9 +267,9 @@ Add a CaptureChangeMySQL processor and configure it as follows:
 
 ![Image](https://github.com/ahadjidj/Streaming-Workshop-with-HDF/raw/master/images/CDC.png)
 
-Note that we are leveraging the variables we defined previously. 
+Note that we are leveraging the variables we defined previously. The CaptureChangeMySQL needs a MapCache service to store its state (binlog position and transaction ID). Add a MapCache client and service. 
 
-The CDC processor can be configured to listen to some events only. In our use case, we won't use Begin/Commit/DDL statements. But for teaching purposes, we will receive then filter them later. Add a RouteOnAttribute processor and configure it as follows:
+The CDC processor can be configured to listen to some events only. In our use case, we won't use Begin/Commit/DDL statements. But for teaching purposes, we will receive those events and filter them later. Add a RouteOnAttribute processor and configure it as follows:
 
 ![Image](https://github.com/ahadjidj/Streaming-Workshop-with-HDF/raw/master/images/Route1.png)
 
@@ -281,7 +281,13 @@ curl "https://raw.githubusercontent.com/ahadjidj/Streaming-Workshop-with-HDF/mas
 mysql -h localhost -u workshop -p"StrongPassword" --database=workshop < create-customers-table.sql
   ``` 
 
-Use the different relations to see how data looks like for each event. Use only insert and update relations for the next steps and add an EvaluatteJsonPath processor to extract the table name.
+Use the different relations to see how data looks like for each event. To get update events, you can connect to MySQL and update some customer informations.
+
+  ```
+mysql -h localhost -u root -pStrongPassword
+UPDATE customers SET phone='0645341234' WHERE id=1;
+  ```
+For the next step, add an EvaluatteJsonPath processor to extract the table name. Connect the Route processor to the EvaluateJsonProcessor with insert and update relations only. 
 
 ![Image](https://github.com/ahadjidj/Streaming-Workshop-with-HDF/raw/master/images/ExtractTableName.png)
 
