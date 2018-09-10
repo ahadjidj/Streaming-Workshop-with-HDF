@@ -17,7 +17,11 @@
   - Ingest and format data in NiFi
   - Store events in ElasticSearch
   - Publish update events in Kafka
-  
+- [Lab 4](#lab-4) - Logs data collection with MiNiFi(Dev persona)
+  - Design MiNiFi pipeline
+  - Deploy MiNiFi agent
+  - Deploy MiNiFi pipeline 
+ 
   ---------------
 # Introduction
 
@@ -325,3 +329,28 @@ Open ElasticSearch UI and check that your customer data has been indexed : http:
 The last step for this lab is to publish Insert events in Kafka. This event will be used by SAM to check if there's a risk of fraud. Hence, we need to use Avro record writter in the Kafka processor configuration.
 
 ![Image](https://github.com/ahadjidj/Streaming-Workshop-with-HDF/raw/master/images/KafkaPublish1.png)
+
+# Lab 4
+The objective of this lab is to ingest web applications logs with MiNiFi. Each Web application generates logs on customer behaviour on the website. An event is a JSON line that describe a user behaviour on a product web page and gives information on:
+  - Id: the user id browsing the retailer website. id = 0 means that the user is not connected and not known
+  - Product: the product id that the customer visited.
+  - Sessionduration: how long the customer spent on the product web page. A short duration means that the user is not interesed by the product and is only browsing.
+  - Buy: is a boolean that indicates if the user bought the product or not
+  - Price: the total amount that the customer spent
+
+We will simulate the web apps by writting directly events to files inside the tmp folder. The final objective will be to add browsing information to customer data in Elasticsearch. This will be the first step for the customer 360 view. 
+ 
+## Design MiNiFi pipeline
+Inside the NiFi Agent1_logsIngestion process group, create the MiNiFi flow as follows:
+
+![Image](https://github.com/ahadjidj/Streaming-Workshop-with-HDF/raw/master/images/minifi.png)
+
+As you can see, it's a very simple pipeline that tails all web-appXXX.log files inside /tmp and send them to our NiFi via S2S. You can enrich this pipeline with more steps such as compression or filtering on session duration later if you like. The tail fail configuration is described below:
+
+![Image](https://github.com/ahadjidj/Streaming-Workshop-with-HDF/raw/master/images/tail.png)
+
+Save the flow as a template and download the associated XML file.
+
+## Deploy MiNiFi agent
+To extract web apps logs from each web server, we will deploy a MiNiFi agent on 
+## Deploy MiNiFi pipeline 
