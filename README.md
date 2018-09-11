@@ -21,7 +21,7 @@
   - Design MiNiFi pipeline
   - Deploy MiNiFi agent
   - Deploy MiNiFi pipeline 
- 
+  - Design NiFi pipeline
   ---------------
 # Introduction
 
@@ -341,7 +341,9 @@ The objective of this lab is to ingest web applications logs with MiNiFi. Each W
 We will simulate the web apps by writting directly events to files inside the tmp folder. The final objective will be to add browsing information to customer data in Elasticsearch. This will be the first step for the customer 360 view. 
  
 ## Design MiNiFi pipeline
-Inside the NiFi Agent1_logsIngestion process group, create the MiNiFi flow as follows:
+Before working on the MiNiFi pipeline, we need to prepare an Input port to receive data from the agent. This should be done before designing the MiNiFi flow. In the NiFi root Canvas, add an Input port and call it **SRC2_InputFromWebApps**. 
+
+Now, inside the NiFi Agent1_logsIngestion process group, create the MiNiFi flow as follows:
 
 ![Image](https://github.com/ahadjidj/Streaming-Workshop-with-HDF/raw/master/images/minifi.png)
 
@@ -352,5 +354,41 @@ As you can see, it's a very simple pipeline that tails all web-appXXX.log files 
 Save the flow as a template and download the associated XML file.
 
 ## Deploy MiNiFi agent
-To extract web apps logs from each web server, we will deploy a MiNiFi agent on 
+MiNiFi is part of the NiFi ecosystem but should be deployed separately. Currently, the deployment should be automated by the user. In near future, we will build a Command & Control tool (C2) that can be used to deploy, monitor and manage a number of MiNiFi agents from a central location. Run the following instructions to install MiNiFi in /usr/hdf/current/minifi
+
+  ``` 
+sudo mkdir /usr/hdf/current/minifi
+sudo mkdir /usr/hdf/current/minifi/toolkit
+wget http://apache.claz.org/nifi/minifi/0.5.0/minifi-0.5.0-bin.tar.gz
+tar -xvf minifi-0.5.0-bin.tar.gz
+sudo cp -R minifi-0.5.0/. /usr/hdf/current/minifi
+  ``` 
+
+In addition to NiFi, we will need MiNiFi toolkit to convert our XML template file into YAML file understeable by MiNiFi.
+
+  ``` 
+wget http://apache.claz.org/nifi/minifi/0.5.0/minifi-toolkit-0.5.0-bin.tar.gz
+tar -xvf minifi-toolkit-0.5.0-bin.tar.gz
+sudo cp -R minifi-toolkit-0.5.0/. /usr/hdf/current/minifi/toolkit
+  ``` 
+
 ## Deploy MiNiFi pipeline 
+SCP the template you downloaded from your NiFi node to your HDF cluster. You can Curl mine and change it to add your NiFi URL in the S2S section.
+
+  ``` 
+sudo curl -sSL -o /usr/hdf/current/minifi/conf/minifi.xml https://raw.githubusercontent.com/ahadjidj/Streaming-Workshop-with-HDF/master/scripts/minifi.xml
+  ``` 
+Use the toolkit to convert your XML file to YAML format:
+
+  ``` 
+sudo /usr/hdf/current/minifi/toolkit/bin/config.sh transform /usr/hdf/current/minifi/conf/minifi.xml /usr/hdf/current/minifi/conf/config.yml
+  ``` 
+
+Now start the MiNiFi agent and look to the logs:
+
+  ``` 
+sudo /usr/hdf/current/minifi/bin/minifi.sh start
+tail -f /usr/hdf/current/minifi/logs/minifi-app.log
+  ``` 
+## Design NiFi pipeline
+
