@@ -341,7 +341,7 @@ The objective of this lab is to ingest web applications logs with MiNiFi. Each W
 We will simulate the web apps by writting directly events to files inside the tmp folder. The final objective will be to add browsing information to customer data in Elasticsearch. This will be the first step for the customer 360 view. 
  
 ## Design MiNiFi pipeline
-Before working on the MiNiFi pipeline, we need to prepare an Input port to receive data from the agent. This should be done before designing the MiNiFi flow. In the NiFi root Canvas, add an Input port and call it **SRC2_InputFromWebApps**. 
+Before working on the MiNiFi pipeline, we need to prepare an Input port to receive data from the agent. In the NiFi root Canvas, add an Input port and call it **SRC2_InputFromWebApps**. 
 
 Now, inside the NiFi Agent1_logsIngestion process group, create the MiNiFi flow as follows:
 
@@ -391,4 +391,40 @@ sudo /usr/hdf/current/minifi/bin/minifi.sh start
 tail -f /usr/hdf/current/minifi/logs/minifi-app.log
   ``` 
 ## Design NiFi pipeline
+Inside the SRC2_LogIngestion PG, create the NiFi pipeline that will process data coming from our agent. The general flow is:
+  - Receive data through S2S
+  - Route events based on the sessionduration
+  - We consider that a customer that spend less than 20 secondes on a product page is not really interested. We will filter these events and ignore them.
+  - Filter unkown users browsing events (id=0). These can be browsing activity from a non-logged customer or not-yet customer. We can store these events in HDFS for other use cases such as product recommendation. In real life scenario, a browsing session will have an ID and can be used link to a user once logged in.
+  - For the other events, we will do three things:
+    - Update customer data in Elastic to include products that the customer were looking to. For the sake of simplicity, we will store only the last item. If you want to keep a complete list, you can use ElasticSearch API with scripts feature (eg. "source": "ctx.source.products.add(params.product)")
+    - Convert logs event to avro and publish them to Kafka. These events will be used by SAM in the fraud detection use cas. The final flow looks like the below:
+    
+![Image](https://github.com/ahadjidj/Streaming-Workshop-with-HDF/raw/master/images/UC3.png)
+
+Start by adding an Input port followed by an update attribute that adds an attribute schema.name with the value ${source.schema}.
+
+To route events based on the different business rules, we will use an interesting Record processor that can be used to SQL on flow files. Add a query record processor and configure it as show below:
+
+![Image](https://github.com/ahadjidj/Streaming-Workshop-with-HDF/raw/master/images/query.png)
+
+As you can see, this processor will create two relations (unknown and validsessions) and route data according the SQL query. Note that a subset of fields can be selected also (ex. SELECT id, sessionduration from FLOWFILE).
+
+Route data coming from the unkown relation to HDFS.
+
+Route data coming from validsessions to Kafka. In the PublishKafkaRecord, use the AvroRecordSetWritter as Record Writter to publish data in Avro format for SAM consumption. Remember that we set **Schema Write Strategy** of the Avro Writter to **HWX Content-Encoded Schema Reference**. This means that each Kafka message will have the schema reference encoded in the first byte of the message.
+
+![Image](https://github.com/ahadjidj/Streaming-Workshop-with-HDF/raw/master/images/avro.png)
+
+Now let's update our Elastic index to add data on customer browsing behaviors. To learn how to schema conversion in record based processor, let's consider that we want to update our customer data by the browsed produt ID and sessionduration. We don't want to add information on wether the customer bought or no the product. To implement this, we need a ConvertRecord processor.
+
+![Image](https://github.com/ahadjidj/Streaming-Workshop-with-HDF/raw/master/images/convert.png)
+
+As you can see, I had to create a new JsonSetWritter to specify the write Schema which is different from the read schema define in the attribute **schema.name**. The **Views JsonRecordSetWriter** should be configured as below. Note that the Schema Name field is set to logs_views that we have already defined in our schema registry.
+
+![Image](https://github.com/ahadjidj/Streaming-Workshop-with-HDF/raw/master/images/views.png)
+
+
+
+
 
