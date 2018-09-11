@@ -420,11 +420,20 @@ Now let's update our Elastic index to add data on customer browsing behaviors. T
 
 ![Image](https://github.com/ahadjidj/Streaming-Workshop-with-HDF/raw/master/images/convert.png)
 
-As you can see, I had to create a new JsonSetWritter to specify the write Schema which is different from the read schema define in the attribute **schema.name**. The **Views JsonRecordSetWriter** should be configured as below. Note that the Schema Name field is set to logs_views that we have already defined in our schema registry.
+As you can see, I had to create a new JsonSetWritter to specify the write Schema which is different from the read schema define in the attribute **schema.name**. The **Views JsonRecordSetWriter** should be configured as below. Note that the Schema Name field is set to logs_views that we have already defined in our schema registry. We can avoid fixing the schema directly in the record writter by creating global Read/Write controller and use two attributes : schema.name.input and schema.name.output.
 
 ![Image](https://github.com/ahadjidj/Streaming-Workshop-with-HDF/raw/master/images/views.png)
 
+Add a PutElasticSearchHTTPRecord and configure it to update your customer data.
 
+Now let's test the end-to-end flow by creating a file in /tmp with some logs events.
 
-
-
+  ``` 
+cat <<EOF >> /tmp/web-app.log
+{"id":2,"product":"12321","sessionduration":60,"buy":"false"}
+{"id":0,"product":"24234","sessionduration":120,"buy":"false"}
+{"id":10,"product":"233","sessionduration":5,"buy":"true","price":2000}
+{"id":1,"product":"98547","sessionduration":30,"buy":"true","price":1000}
+EOF
+  ``` 
+You should see data coming from MiNiFi agent to NiFi through S2S, then filtered, routed and stored in Kafka and Elasticsearch. Check data in ElasticSearch and confirm that browsing information has been added to customer 1 and 2. Check also that you have one event that go through the unkown connection.
