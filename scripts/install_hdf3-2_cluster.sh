@@ -30,14 +30,21 @@ oldpass=$( grep 'temporary.*root@localhost' /var/log/mysqld.log | tail -n 1 | se
 cat << EOF > mysql-setup.sql
 ALTER USER 'root'@'localhost' IDENTIFIED BY 'Secur1ty!'; 
 uninstall plugin validate_password;
-CREATE DATABASE registry DEFAULT CHARACTER SET utf8; CREATE DATABASE streamline DEFAULT CHARACTER SET utf8; 
-CREATE USER 'registry'@'%' IDENTIFIED BY '${password}'; CREATE USER 'streamline'@'%' IDENTIFIED BY '${password}'; 
-GRANT ALL PRIVILEGES ON registry.* TO 'registry'@'%' WITH GRANT OPTION ; GRANT ALL PRIVILEGES ON streamline.* TO 'streamline'@'%' WITH GRANT OPTION ; 
+CREATE DATABASE registry DEFAULT CHARACTER SET utf8; CREATE DATABASE streamline DEFAULT CHARACTER SET utf8;CREATE DATABASE workshop DEFAULT CHARACTER SET utf8; 
+CREATE USER 'registry'@'%' IDENTIFIED BY '${password}'; CREATE USER 'streamline'@'%' IDENTIFIED BY '${password}'; CREATE USER 'workshop'@'%' IDENTIFIED BY '${password}';
+GRANT ALL PRIVILEGES ON registry.* TO 'registry'@'%' WITH GRANT OPTION ; GRANT ALL PRIVILEGES ON streamline.* TO 'streamline'@'%' WITH GRANT OPTION ; GRANT ALL PRIVILEGES ON workshop.* TO 'workshop'@'%' WITH GRANT OPTION ;
 commit; 
 EOF
 mysql -h localhost -u root -p"$oldpass" --connect-expired-password < mysql-setup.sql
 #change Mysql password to ${password}
 mysqladmin -u root -p'Secur1ty!' password ${password}
+#install ES
+wget https://artifacts.elastic.co/downloads/elasticsearch/elasticsearch-6.4.0.rpm
+wget https://artifacts.elastic.co/downloads/elasticsearch/elasticsearch-6.4.0.rpm.sha512
+shasum -a 512 -c elasticsearch-6.4.0.rpm.sha512 
+sudo rpm --install elasticsearch-6.4.0.rpm
+sudo bash -c 'echo "network.host: 0.0.0.0" >> /etc/elasticsearch/elasticsearch.yml'
+sudo -i service elasticsearch start
 
 echo ""
 echo "#################################################"
