@@ -12,16 +12,19 @@
   - Create process groups and variables in NiFi
   - Create events topics in Kafka
   - Create environment and service pool in SAM
-- [Lab 3](#lab-3) - MySQL CDC data ingestion (Dev persona)
+- [Lab 3](#lab-3) - MySQL CDC data ingestion (DataEng persona)
   - Configure MySQL to enable binary logs
   - Ingest and format data in NiFi
   - Store events in ElasticSearch
   - Publish update events in Kafka
-- [Lab 4](#lab-4) - Logs data collection with MiNiFi(Dev persona)
+  - Version flow in NiFi Registry
+- [Lab 4](#lab-4) - Logs data collection with MiNiFi(DataEng persona)
   - Design MiNiFi pipeline
   - Deploy MiNiFi agent
   - Deploy MiNiFi pipeline 
   - Design NiFi pipeline
+- [Lab 5](#lab-5) - Fraud detection with SAM (Dev/Business Analyst persona)
+
   ---------------
 # Introduction
 
@@ -29,8 +32,8 @@ The objective of this workshop is to build an end to end streaming use case with
   - Use NiFi to ingest CDC data in real time
   - Use Record processors to benefit from improved performance and integration with schema registry
   - Route and filter data using SQL
-  - Deploy and use MiNiFi agents with NiFi
-  - Version flow developments and propagate flows from dev to prod
+  - Deploy and use MiNiFi agents
+  - Version flow developments and propagation from dev to prod
   - Integration between NiFi and Kafka to benefit from latest Kafka improvments (transactions, message headers, etc)
   - Test mode in Stream Analytics Manager to mock a streaming application before deploying it
 
@@ -40,19 +43,19 @@ In this workshop, we will build a simplified streaming use case for a retail com
 
 Image to add
 
-# Lab 1
+# Lab 1 
 
 ## Create an HDF 3.2 cluster
 
 For the coming labs, we will install a one node HDF cluster with NiFi, NiFi Registry, Kafka, Storm, Schema Registry and Stream Analytics Manager. We will use field cloud for this workshop but the instructions will work for any cloud provider (AWS for instance).
 
-  - Connect to your OpenStack account on field cloud and create a VM with 16 GB of RAM (this corresponds to a m3.xlarge instance). Keep the default parameters and num_vms to 1. Note the stack name that you defined as it will be used to access to your cluster. Let's assume that your stack name is hdfcluster.
+  - Connect to your OpenStack account on field cloud and create a VM with at least 16 GB of RAM (this corresponds to a m3.xlarge instance). Keep the default parameters and num_vms to 1. Note the stack name that you defined as it will be used to access to your cluster. Let's assume that your stack name is hdfcluster.
   - SSH to your cluster using the field PEM key ``` ssh -i field.pem centos@hdfcluster0.field.hortonworks.com ```
   - Launch the cluster install using with the following instruction
   ```
   curl -sSL https://raw.githubusercontent.com/ahadjidj/Streaming-Workshop-with-HDF/master/scripts/install_hdf3-2_cluster.sh | sudo -E sh
   ```
-This instruction downloads and runs a script that initialize install a MySQL Database, ElasticSearch, MiNiFi, Ambari agent and server,  HDF MPack and HDF services required for this workshop. Cluster installation will take about 10 minutes.
+This scripts installs a MySQL Database, ElasticSearch, MiNiFi, Ambari agent and server, HDF MPack and HDF services required for this workshop. Cluster installation will take about 10 minutes.
 
 ## Access your Cluster
 
@@ -62,16 +65,15 @@ This instruction downloads and runs a script that initialize install a MySQL Dat
     - **root/StrongPassword** usable from localhost only
     - **workshop/StrongPassword** usable from remote and has full privileges on the workshop DB 
     
-# Lab 2
-
+# Lab 2 Platform preparation (admin persona)
 To enforce best practices and a minimal governance, there are few tasks that an admin should do before granting access to the platform. These tasks include:
-  - Defining users roles and previliges on each tool (SAM, NiFi, Etc)
-  - Define the schemas of events that we be used. This avoid having developpers using their own schemas making applications integration and evolution a real nightmare.
+  - Defining users, roles and previliges on each tool (SAM, NiFi, Etc)
+  - Define the schemas of events that we will use. This avoids having developpers using their own schemas which makes applications integration and evolution a real nightmare.
   - Define and enforce naming convention that make easier managing applications lifecycle (eg. NiFi PG and processors names)
   - Define global variables that should be used to make application migration between environment simple
   - etc
 
-In this lab, we will implement some of these best practices to set the right environnement for our developments.
+In this lab, we will implement some of these best practices to set the right environnement for our developpers.
 
 ## Create schemas in Schema Registry
 
@@ -114,8 +116,7 @@ For the schema text, use the following Avro description, also available [here](h
 } 
   ```
 ### Logs events
-
-These events are data coming from Web Application through the MiNiFi agents deployed on application servers. Each event, describe a customer browsing behavior on a webpage. The provided informations are the customer id, the product page being consulted, session duration and if the customer bought the product at the end of the session or not. To declare this schema, go to Schema Registry and add a new schema with these details:
+These events are data coming from Web Application through the MiNiFi agents deployed on application servers. Each event, describe a customer browsing behavior on a webpage. The provided information is the customer id, the product page being viewed, session duration and if the customer bought the product at the end of the session or not. Go to Schema Registry and add a new schema with these details:
   - Name: logs
   - Descrption: schema for logs events
   - Type: Avro Schema Provider
@@ -138,12 +139,12 @@ These events are data coming from Web Application through the MiNiFi agents depl
   ]
 }
   ```
-We need also to define another logs event (logs_view) that conains only the product browsing session information with the buy and price fields.
+We need also another logs event (logs_view) that conains only the product browsing session information with the buy and price fields. We will see why later in the labs.
 
   ```
 {
   "type": "record",
-  "name": "logs",
+  "name": "logs_view",
   "fields" : [
     {"name": "id", "type": "int"},
     {"name": "product", "type": ["null", "string"]},
@@ -152,8 +153,7 @@ We need also to define another logs event (logs_view) that conains only the prod
 }
   ```
 ### Alerts events
-
-At the end of the workshop, we will use the different events to detect eventual frauds. If a fraud is detected, we will send an event to inform an application or a supervisor. To achieve this, we need a new schema for these events. To declare this schema, go to Schema Registry and add a new schema with these details:
+At the end of the workshop, we will use the different events to detect eventual frauds. If a fraud is detected, we will send an alert to inform an application or a supervisor. To achieve this, we need a new schema for these events. Go to Schema Registry and add a new schema with these details:
   - Name: alerts
   - Descrption: schema for alerts events
   - Type: Avro Schema Provider
