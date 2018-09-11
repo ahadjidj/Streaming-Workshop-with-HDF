@@ -39,8 +39,8 @@ mysql -h localhost -u root -p"$oldpass" --connect-expired-password < mysql-setup
 #change Mysql password to ${password}
 mysqladmin -u root -p'Secur1ty!' password ${password}
 #install ES
-wget https://artifacts.elastic.co/downloads/elasticsearch/elasticsearch-6.4.0.rpm
-wget https://artifacts.elastic.co/downloads/elasticsearch/elasticsearch-6.4.0.rpm.sha512
+curl -ssLO https://artifacts.elastic.co/downloads/elasticsearch/elasticsearch-6.4.0.rpm
+curl -ssLO https://artifacts.elastic.co/downloads/elasticsearch/elasticsearch-6.4.0.rpm.sha512
 shasum -a 512 -c elasticsearch-6.4.0.rpm.sha512 
 sudo rpm --install elasticsearch-6.4.0.rpm
 sudo bash -c 'echo "network.host: 0.0.0.0" >> /etc/elasticsearch/elasticsearch.yml'
