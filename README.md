@@ -34,12 +34,12 @@ The objective of this workshop is to build an end to end streaming use case with
   - Route and filter data using SQL
   - Deploy and use MiNiFi agents
   - Version flow developments and propagation from dev to prod
-  - Integration between NiFi and Kafka to benefit from latest Kafka improvments (transactions, message headers, etc)
+  - Integration between NiFi and Kafka to benefit from latest Kafka improvements (transactions, message headers, etc)
   - Test mode in Stream Analytics Manager to mock a streaming application before deploying it
 
 # Use case
 
-In this workshop, we will build a simplified streaming use case for a retail company. We will ingest data from MySQL Database and web apps logs to build a 360 view of a customer in realtime. This data can be stored on modern databases such as HDP or ElasticSearch to offer more scalability and agility compared to legacy DBs. Based on this two data streams, we will implement a fraud detection algorithm based on business rule. For instance, if a user update his account (for instance address) and buy an item that's expensive than his usual expenses, we may decide to investigate. This can be a sign that his account has been hacked and used to buy an expensive item that will be shipped to a new address. The following picture explains the high level architecture of the use case.
+In this workshop, we will build a simplified streaming use case for a retail company. We will ingest data from MySQL Database and web apps logs to build a 360 view of a customer in real-time. This data can be stored on modern databases such as HDP or ElasticSearch to offer more scalability and agility compared to legacy DBs. Based on these two data streams, we will implement a fraud detection algorithm based on business rules. For instance, if a user updates their account (for instance their address) and buys an item that's more expensive than their usual expenses, we may decide to investigate. This can be a sign that their account has been hacked and used to buy an expensive item that will be shipped to a new address. The following picture explains the high level architecture of the use case.
 
 Image to add
 
@@ -47,11 +47,11 @@ Image to add
 
 ## Create an HDF 3.2 cluster
 
-For the coming labs, we will install a one node HDF cluster with NiFi, NiFi Registry, Kafka, Storm, Schema Registry and Stream Analytics Manager. We will use field cloud for this workshop but the instructions will work for any cloud provider (AWS for instance).
+For the coming labs, we will install a one-node HDF cluster with NiFi, NiFi Registry, Kafka, Storm, Schema Registry and Stream Analytics Manager. We will use the field cloud for this workshop but the instructions will work for any cloud provider (AWS for instance).
 
   - Connect to your OpenStack account on field cloud and create a VM with at least 16 GB of RAM (this corresponds to a m3.xlarge instance). Keep the default parameters and num_vms to 1. Note the stack name that you defined as it will be used to access to your cluster. Let's assume that your stack name is hdfcluster.
   - SSH to your cluster using the field PEM key ``` ssh -i field.pem centos@hdfcluster0.field.hortonworks.com ```
-  - Launch the cluster install using with the following instruction
+  - Launch the cluster install using the following instruction
   ```
   curl -sSL https://raw.githubusercontent.com/ahadjidj/Streaming-Workshop-with-HDF/master/scripts/install_hdf3-2_cluster.sh | sudo -E sh
   ```
@@ -59,21 +59,21 @@ This scripts installs a MySQL Database, ElasticSearch, MiNiFi, Ambari agent and 
 
 ## Access your Cluster
 
-  - When the script finishes the work, login to Ambari web UI by opening http://{YOUR_IP}:8080 and log in with **admin/StrongPassword**
-  - Open the different UI and check that all services are running and are healthy (NiFi, NiFi Registry, SR, SAM, etc)
+  - When the script finishes the work, login to Ambari Web UI by opening http://{YOUR_IP}:8080 and log in with **admin/StrongPassword**
+  - Open the different UIs and check that all services are running and are healthy (NiFi, NiFi Registry, SR, SAM, etc)
   - Connect to the MySQL DB using bash or tools like MySQLWorkbench. A workshop DB has been created for the lab. You have also two users:
     - **root/StrongPassword** usable from localhost only
     - **workshop/StrongPassword** usable from remote and has full privileges on the workshop DB 
     
 # Lab 2 Platform preparation (admin persona)
-To enforce best practices and a minimal governance, there are few tasks that an admin should do before granting access to the platform. These tasks include:
-  - Defining users, roles and previliges on each tool (SAM, NiFi, Etc)
+To enforce best practices and a minimal governance, there are a few tasks that an admin should do before granting access to the platform. These tasks include:
+  - Define users, roles and privileges on each tool (SAM, NiFi, Etc)
   - Define the schemas of events that we will use. This avoids having developpers using their own schemas which makes applications integration and evolution a real nightmare.
-  - Define and enforce naming convention that make easier managing applications lifecycle (eg. NiFi PG and processors names)
-  - Define global variables that should be used to make application migration between environment simple
+  - Define and enforce naming convention that makes it easier to manage applications lifecycle (eg. NiFi PG and processors names)
+  - Define global variables that should be used to make application migration between environments simple
   - etc
 
-In this lab, we will implement some of these best practices to set the right environnement for our developpers.
+In this lab, we will implement some of these best practices to set the right environment for our developpers.
 
 ## Create schemas in Schema Registry
 
@@ -139,7 +139,7 @@ These events are data coming from Web Application through the MiNiFi agents depl
   ]
 }
   ```
-We need also another logs event (logs_view) that conains only the product browsing session information with the buy and price fields. We will see why later in the labs.
+We also need another logs event (logs_view) that contain only the product browsing session information with the buy and price fields. We will see why later in the labs.
 
   ```
 {
@@ -178,10 +178,10 @@ For the schema text, use the following Avro description, also available [here](h
   ```
 ## Create record readers and writters in NiFi
 
-To use these schema in NiFi, we will leverage record based processors. These processors use record readers and writter to offers improved performances and to use schemas defined globally in a Schema Registry. Our sources (MySQL CDC event and Web App logs) generate data in JSON format so we will need a JSON reader to deserialise data. We will store this data in ElasticSearch and publish it to Kafka. Hence, we need JSON and Avro writters to serialize the data. To add a reader/writter accessible by all our NiFi flows, navigate to the root canvas, click on Configure, Controller service and click on "+" button.
+To use these schema in NiFi, we will leverage record based processors. These processors use record readers and writers to offer improved performances and to use schemas defined globally in a Schema Registry. Our sources (MySQL CDC event and Web App logs) generate data in JSON format so we will need a JSON reader to deserialise data. We will store this data in ElasticSearch and publish it to Kafka. Hence, we need JSON and Avro writers to serialize the data. To add a reader/writer accessible by all our NiFi flows, navigate to the root canvas, click on Configure, Controller service and click on "+" button.
 
 ### Add a HortonworksSchemaRegistry
-Before adding any record reader/writter, we need to add a Hortonworks Schema Registry to tell NiFi where to look for schemas definitions. Add a HortonworksSchemaRegistry controller and congure it with your SR URL as show below:
+Before adding any record reader/writer, we need to add a Hortonworks Schema Registry to tell NiFi where to look for schemas definitions. Add a HortonworksSchemaRegistry controller and configure it with your SR URL as shown below:
 
 ![Image](https://github.com/ahadjidj/Streaming-Workshop-with-HDF/raw/master/images/HortonworksSchemaRegistry.png)
 
@@ -196,12 +196,12 @@ To serialize JSON data for which we have a defined schema, add a JsonRecordSetWr
 ![Image](https://github.com/ahadjidj/Streaming-Workshop-with-HDF/raw/master/images/JsonRecordSetWriter.png)
 
 ### Add AvroRecordSetWriter
-Event collected by NiFi will be published to Kafka for further consumption. In the second use case, we will use SAM to analyse data in realtime and detect potential frauds. SAM expects event to be in Avro format with the first byte containing an encoded schema reference. To prepare data for SAM consumption, we need to add AvroRecordSetWriter and set **Schema Write Strategy** to **HWX Content-Encoded Schema Reference** as shown below:
+Event collected by NiFi will be published to Kafka for further consumption. In the second use case, we will use SAM to analyse data in realtime and detect potential frauds. SAM expects the events to be in Avro format with the first byte containing an encoded schema reference. To prepare data for SAM consumption, we need to add AvroRecordSetWriter and set **Schema Write Strategy** to **HWX Content-Encoded Schema Reference** as shown below:
 
 ![Image](https://github.com/ahadjidj/Streaming-Workshop-with-HDF/raw/master/images/AvroRecordSetWriter.png)
 
 ## Create process groups and variables in NiFi
-It's critical to well organize your flows when you have a shared NiFi instance. NiFi flows can be organized per data sources where each Process Group defines the the processing that should be applied to data coming from this source. If you have several flow developpers working on different projects, you can assign roles and privileges to each one of them on those process groups. The PG organisation is also usefull to declare variables for each source or project and make flow migration from one environment to another one easier. In this workshop, we will define 3 PGs as shown below. Note the naming convention (sourceID_description) that will be useful for flows migration and monitoring.
+It's critical to organize your flows when you have a shared NiFi instance. NiFi flows can be organized per data sources where each Process Group defines the processing that should be applied to data coming from this source. If you have several flow developers working on different projects, you can assign roles and privileges to each one of them on those process groups. The PG organisation is also useful to declare variables for each source or project and make flow migration from one environment to another one easier. In this workshop, we will define 3 PGs as shown below. Note the naming convention (sourceID_description) that will be useful for flows migration and monitoring.
 
 ![Image](https://github.com/ahadjidj/Streaming-Workshop-with-HDF/raw/master/images/PGS.png)
 
@@ -243,7 +243,7 @@ Finally, we need to provision a service pool and an environment in SAM for our a
 ![Image](https://github.com/ahadjidj/Streaming-Workshop-with-HDF/raw/master/images/ServicePool.png)
 
 # Lab 3
-In this lab, we will use NiFi to ingest CDC data from MySQL. The MySQL DB has a table "customers" that stores information on our customers. We would like to receive each change in the table as an event (insert, update, etc) and use it with other source to build a customer 360 view in ElasticSearch. The high level flow can be described as follows:
+In this lab, we will use NiFi to ingest CDC data from MySQL. The MySQL DB has a table "customers" that stores information on our customers. We would like to receive each change in the table as an event (insert, update, etc) and use it with other sources to build a customer 360 view in ElasticSearch. The high level flow can be described as follows:
 
 ![Image](https://github.com/ahadjidj/Streaming-Workshop-with-HDF/raw/master/images/UC1.png)
 
@@ -253,7 +253,7 @@ In this lab, we will use NiFi to ingest CDC data from MySQL. The MySQL DB has a 
   - Publish update events in Kafka to use them for fraud detection use cases with SAM (SRC1_PublishKafkaUpdate)
 
 ## Configure MySQL to enable binary logs
-NiFi has a natif CDC feature for MySQL databases. To use it, the MySQL DB must be configured to use binary logs. Use the following instructions to enable binary log for the workshop DB and use ROW format CDC events.
+NiFi has a native CDC feature for MySQL databases. To use it, the MySQL DB must be configured to use binary logs. Use the following instructions to enable binary logs for the workshop DB and use ROW format CDC events.
 
   ```
 sudo bash -c 'sudo cat <<EOF >> /etc/my.cnf
@@ -277,28 +277,28 @@ The CDC processor can be configured to listen to some events only. In our use ca
 
 ![Image](https://github.com/ahadjidj/Streaming-Workshop-with-HDF/raw/master/images/Route1.png)
 
-At this level, you can generate some data to see how CDC events looks like. Use the following instructions to insert 10 customers to the MySQL DB:
+At this level, you can generate some data to see how CDC events look like. Use the following instructions to insert 10 customers to the MySQL DB:
 
   ```
 curl "https://raw.githubusercontent.com/ahadjidj/Streaming-Workshop-with-HDF/master/scripts/create-customers-table.sql" > "create-customers-table.sql"
 
 mysql -h localhost -u workshop -p"StrongPassword" --database=workshop < create-customers-table.sql
   ``` 
-Use the different relations to see how data looks like for each event. Make sure that you have 10 flow files in "insert,update" relation, 20 in "unmatched" and 1 in "ddl".
+Use the different relations to see how the data looks like for each event. Make sure that you have 10 flow files in "insert,update" relation, 20 in "unmatched" and 1 in "ddl".
 
 ![Image](https://github.com/ahadjidj/Streaming-Workshop-with-HDF/raw/master/images/cdcresults.png)
 
-To get update events, you can connect to MySQL and update some customer informations. You should get 11 flow files in the "insert,update" relation now.
+To get update events, you can connect to MySQL and update some customer information. You should get 11 flow files in the "insert,update" relation now.
 
   ```
 mysql -h localhost -u root -pStrongPassword
 UPDATE customers SET phone='0645341234' WHERE id=1;
   ```
-For the next step, add an EvaluatteJsonPath processor to extract the table name. Connect the Route processor to the EvaluateJsonProcessor with insert and update relations only. 
+For the next step, add an EvaluateJsonPath processor to extract the table name. Connect the Route processor to the EvaluateJsonProcessor with insert and update relations only. 
 
 ![Image](https://github.com/ahadjidj/Streaming-Workshop-with-HDF/raw/master/images/ExtractTableName.png)
 
-As you can see, each event has lot of additional information that are not useful for us. To keep only of interest, add a JoltTransformationProcessor with the following Jolt specification:
+As you can see, each event has a lot of additional information that are not useful for us. To keep only of interest, add a JoltTransformationProcessor with the following Jolt specification:
 
   ```
 [
@@ -314,22 +314,22 @@ As you can see, each event has lot of additional information that are not useful
   }
 ]
   ``` 
-Now that we have our data in the target Json format, let's add an attribute schema.name with the value ${source.schema} to prepare to use record based processors and our customers schema defined in SR.
+Now that we have our data in the target Json format, let's add an attribute schema.name with the value ${source.schema} to prepare to use record-based processors and our customers schema defined in SR.
 
 ## Store events in ElasticSearch
-Before storing data in ES, let's separate between Insert and Updates events first. This is not required since the PutElasticSearchRecord processor supports both insert and update operations. But for other processors, this may be required. Also, some CDC tools generate different schemas for insert and update operations so routing data is required. 
+Before storing data in ES, let's separate between Insert and Update events first. This is not required since the PutElasticSearchRecord processor supports both insert and update operations. But for other processors, this may be required. Also, some CDC tools generate different schemas for insert and update operations so routing data is required. 
 
-Add a RouteOnAttribute processor as previously and separate between inserts and updates. For each type of event, add a MergeRecord and PutElasticSearchHttpRecord configured as follows. Use Index operation for insert event and update operation for update events.
+Add a RouteOnAttribute processor like before and separate between inserts and updates. For each type of event, add a MergeRecord and PutElasticSearchHttpRecord configured as follows. Use the Index operation for the Insert events and Update operation for Update events.
 
 ![Image](https://github.com/ahadjidj/Streaming-Workshop-with-HDF/raw/master/images/Merge.png)
 ![Image](https://github.com/ahadjidj/Streaming-Workshop-with-HDF/raw/master/images/PutES.png)
 
-Note how easy it is to use Record based processors now that we have prepared our Schema and Reader/Writter.
+Note how easy it is to use Record-based processors now that we have prepared our Schema and Reader/Writer.
 
-Open ElasticSearch UI and check that your customer data has been indexed : http://hdfcluster0.field.hortonworks.com:9200/customers/_search?pretty
+Open ElasticSearch UI and check that your customer data has been indexed: http://hdfcluster0.field.hortonworks.com:9200/customers/_search?pretty
 
 ## Publish update events in Kafka
-The last step for this lab is to publish "insert" events in Kafka. These events will be used by SAM to check if there's a risk of fraud. Hence, we need to use Avro record writter in the Kafka processor configuration.
+The last step for this lab is to publish "insert" events in Kafka. These events will be used by SAM to check if there's a risk of fraud. Hence, we need to use Avro record writer in the Kafka processor configuration.
 
 ![Image](https://github.com/ahadjidj/Streaming-Workshop-with-HDF/raw/master/images/KafkaPublish1.png)
 
@@ -339,14 +339,14 @@ Now that we have our first use case implemented, let's explore the NiFi Flow Reg
 Unfortunately, we don't have another cluster to deploy our flow so let's deploy it in the same instance. Add a new PG to NiFi, click on import, and select your flow. Explore registry features: for instance, change variable in the second instance, make changes in the first instance, and save the new flow version. This should not impact your local variables.
 
 # Lab 4
-The objective of this lab is to ingest web applications logs with MiNiFi. Each Web application generates logs on customer behaviour on the website. An event is a JSON line that describe a user behaviour on a product web page and gives information on:
+The objective of this lab is to ingest web applications logs with MiNiFi. Each web application generates logs on customer behaviour on the website. An event is a JSON line that describes a user behaviour on a product web page and gives information on:
   - Id: the user browsing the website. id = 0 means that the user is not connected or not known.
   - Product: the product id that the customer has looked at.
-  - Sessionduration: how long the customer spent on the product web page. A short duration means that the user is not interesed by the product and is only browsing.
+  - Sessionduration: how long the customer stayed on the product web page. A short duration means that the user is not interested by the product and is only browsing.
   - Buy: a boolean that indicates if the user bought the product or not
   - Price: the total amount of money that the customer spent
 
-We will simulate the web apps by writting directly events to files inside the tmp folder. The final objective will be to add browsing information to customer data in Elasticsearch. This will be the first step for the customer 360 view. 
+We will simulate the web apps by writing directly events to the files inside the tmp folder. The final objective will be to add browsing information to customer data in Elasticsearch. This will be the first step for the customer 360 view. 
  
 ## Design MiNiFi pipeline
 Before working on the MiNiFi pipeline, we need to prepare an Input port to receive data from the agent. In the NiFi root Canvas, add an Input port and call it **SRC2_InputFromWebApps**. 
@@ -362,7 +362,7 @@ As you can see, it's a very simple pipeline that tails all web-appXXX.log files 
 Save the flow as a template and download the associated XML file.
 
 ## Deploy MiNiFi agent
-MiNiFi is part of the NiFi ecosystem but should be deployed separately. Currently, the deployment should be automated by the user. In near future, we will build a Command & Control tool (C2) that can be used to deploy, monitor and manage a number of MiNiFi agents from a central location. Run the following instructions to install MiNiFi in /usr/hdf/current/minifi
+MiNiFi is part of the NiFi ecosystem but should be deployed separately. Currently, the deployment should be automated by the user. In the near future, we will build a Command & Control tool (C2) that can be used to deploy, monitor and manage a number of MiNiFi agents from a central location. Run the following instructions to install MiNiFi in /usr/hdf/current/minifi
 
   ``` 
 sudo mkdir /usr/hdf/current/minifi
@@ -372,7 +372,7 @@ tar -xvf minifi-0.5.0-bin.tar.gz
 sudo cp -R minifi-0.5.0/. /usr/hdf/current/minifi
   ``` 
 
-In addition to NiFi, we will need the MiNiFi toolkit to convert our XML template file into YAML file understeable by MiNiFi.
+In addition to NiFi, we will need the MiNiFi toolkit to convert our XML template file into YAML file understandable by MiNiFi.
 
   ``` 
 wget http://apache.claz.org/nifi/minifi/0.5.0/minifi-toolkit-0.5.0-bin.tar.gz
@@ -401,33 +401,33 @@ tail -f /usr/hdf/current/minifi/logs/minifi-app.log
 ## Design NiFi pipeline
 Inside the SRC2_LogIngestion PG, create the NiFi pipeline that will process data coming from our agent. The general flow is:
   - Receive data through S2S
-  - Filter events based on the sessionduration. We consider that a customer that spend less than 20 secondes on a product page is not really interested. We will filter these events and ignore them.
-  - Filter unkown users browsing events (id=0). These events can be browsing activity from a non-logged customer or not-yet customer. We can store these events in HDFS for other use cases such as product recommendation. In a real life scenario, a browsing session will have an ID and can be used to link browsing history to a user once logged in.
+  - Filter events based on the sessionduration. We consider that a customer who spends less than 20 seconds on a product page is not interested. We will filter these events and ignore them.
+  - Filter unknown users browsing events (id=0). These events can be browsing activity from a non-logged-in customer or a customer who is not yet logged in. We can store these events in HDFS for other use cases such as product recommendations. In a real life scenario, a browsing session will have an ID and can be used to link browsing history to a user once logged in.
   - For the other events, we will do two things:
     - Update customer data in Elasticsearch to include the products that the customer has looked at. For the sake of simplicity, we will store only the last item. If you want to keep a complete list, you can use ElasticSearch API with scripts feature (eg. "source": "ctx.source.products.add(params.product)")
-    - Convert logs event to avro and publish them to Kafka. These events will be used by SAM in the fraud detection use cas. The final flow looks like the below:
+    - Convert logs event to Avro and publish them to Kafka. These events will be used by SAM in the fraud detection use case. The final flow looks like the below:
     
 ![Image](https://github.com/ahadjidj/Streaming-Workshop-with-HDF/raw/master/images/UC3.png)
 
 Start by adding an Input port followed by an update attribute that adds an attribute schema.name with the value ${source.schema}.
 
-To route events based on the different business rules, we will use an interesting Record processor that leverage Calcite to do SQL on flow files. Add a query record processor and configure it as show below:
+To route events based on the different business rules, we will use an interesting Record processor that leverage Calcite to do SQL on flow files. Add a query record processor and configure it as shown below:
 
 ![Image](https://github.com/ahadjidj/Streaming-Workshop-with-HDF/raw/master/images/query.png)
 
 As you can see, this processor will create two relations (unknown and validsessions) and route data according to the SQL query. Note that a subset of fields can be selected also (ex. SELECT id, sessionduration from FLOWFILE).
 
-Route data coming from the unkown relation to HDFS.
+Route data coming from the unknown relation to HDFS.
 
-Route data coming from validesessions to Kafka. In the PublishKafkaRecord, use the AvroRecordSetWritter as Record Writter to publish data in Avro format. Remember that we set **Schema Write Strategy** of the Avro Writter to **HWX Content-Encoded Schema Reference**. This means that each Kafka message will have the schema reference encoded in the first byte of the message (required by SAM).
+Route data coming from validsessions to Kafka. In the PublishKafkaRecord, use the AvroRecordSetWriter as Record Writer to publish data in Avro format. Remember that we set **Schema Write Strategy** of the Avro Writer to **HWX Content-Encoded Schema Reference**. This means that each Kafka message will have the schema reference encoded in the first byte of the message (required by SAM).
 
 ![Image](https://github.com/ahadjidj/Streaming-Workshop-with-HDF/raw/master/images/avro.png)
 
-Now let's update our Elasticsearch index to add data on customer browsing behaviors. To learn how to do schema conversion with record based processors, let's consider that we want to add the browsed produt ID and sessionduration and not the information on wether the customer bought the product or not. To implement this, we need a ConvertRecord processor.
+Now let's update our Elasticsearch index to add data on customer browsing behaviors. To learn how to do schema conversion with record based processors, let's consider that we want to add the browsed product ID and sessionduration as opposed to the information on whether the customer bought the product or not. To implement this, we need a ConvertRecord processor.
 
 ![Image](https://github.com/ahadjidj/Streaming-Workshop-with-HDF/raw/master/images/convert.png)
 
-As you can see, I had to create a new JsonSetWritter to specify the write Schema which is different from the read schema referenced by the attribute **schema.name**. The **Views JsonRecordSetWriter** should be configured as below. Note that the Schema Name field is set to logs_view that we have already defined in our schema registry. We can avoid fixing the schema directly in the record writter by creating global Read/Write controller and use two attributes : schema.name.input and schema.name.output.
+As you can see, I had to create a new JsonSetWritter to specify the write Schema which is different from the read schema referenced by the attribute **schema.name**. The **Views JsonRecordSetWriter** should be configured as below. Note that the Schema Name field is set to logs_view that we have already defined in our schema registry. We can avoid fixing the schema directly in the record writer by creating global Read/Write controller and use two attributes : schema.name.input and schema.name.output.
 
 ![Image](https://github.com/ahadjidj/Streaming-Workshop-with-HDF/raw/master/images/views.png)
 
@@ -443,4 +443,4 @@ cat <<EOF >> /tmp/web-app.log
 {"id":1,"product":"98547","sessionduration":30,"buy":"true","price":1000}
 EOF
   ``` 
-You should see data coming from the MiNiFi agent to NiFi through S2S. Data will be filtered, routed and stored in Kafka and Elasticsearch. Check data in ElasticSearch and confirm that browsing information has been added to customer 1 and 2. Check also that you have one event that go through the unkown connection.
+You should see data coming from the MiNiFi agent to NiFi through S2S. Data will be filtered, routed and stored in Kafka and Elasticsearch. Check data in ElasticSearch and confirm that browsing information has been added to customer 1 and 2. Check also that you have one event that go through the unknown connection.
