@@ -42,7 +42,7 @@ The objective of this workshop is to build an end to end streaming use case with
 
 In this workshop, we will build a simplified streaming use case for a retail company. We will ingest data from MySQL Database and web apps logs to build a 360 view of a customer in real-time. This data can be stored on modern databases such as HDP or ElasticSearch to offer more scalability and agility compared to legacy DBs. Based on these two data streams, we will implement a fraud detection algorithm based on business rules. For instance, if a user updates their account (for instance their address) and buys an item that's more expensive than their usual expenses, we may decide to investigate. This can be a sign that their account has been hacked and used to buy an expensive item that will be shipped to a new address. The following picture explains the high level architecture of the use case.
 
-Image to add
+![Image](https://github.com/ahadjidj/Streaming-Workshop-with-HDF/raw/master/images/UC_description.png)
 
 # Lab 1 
 
