@@ -23,7 +23,8 @@
   - Deploy MiNiFi agent
   - Deploy MiNiFi pipeline 
   - Design NiFi pipeline
-- [Lab 5](#lab-5) - Fraud detection with SAM (Dev/Business Analyst persona)
+- [Lab 5](#lab-5) - TODO Fraud detection with SAM (Dev/Business Analyst persona)
+- [Lab 6](#lab-6) - TODO Realtime analytics with Druid (Dev/Business Analyst persona)
 
   ---------------
 # Introduction
