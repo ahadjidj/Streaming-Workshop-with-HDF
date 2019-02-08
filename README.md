@@ -81,7 +81,55 @@ This scripts installs a MySQL Database, ElasticSearch, MiNiFi, Ambari agent and 
 # Lab 2 Simple flow management
 Great! now that you have your HDF cluster up and running, and that you get familiar with it, let's warm with a simple NiFi exercise that will help us introduce basic NiFi notions. If you are already familiar with NiFi, you can skip this section and work on Lab 3 directly.
 
+Let's create a simple NiFi flow that watch the /tmp/input directory, and each time a file is present, compresses it, and moves it to /tmp/output. Go to the main canvas of NiFi, locate the add processor button, drag it onto the canvas and release. Explore the list of available processors. You can use the filter bar to search for a particular processor.
 
+![Image](https://github.com/ahadjidj/Streaming-Workshop-with-HDF/raw/master/images/NiFi.png)
+
+Add and configure the following processors:
+1. Select the GetFile Processor and add it
+1. Configure the GetFile Processor
+  1. Double-click on the new processor
+  1. The tabbed dialog should show settings, give the processor a name (ex. Get File From TMP)
+  1. Select the properties tab
+  1. Set Input Directory to "/tmp/input" (before doing this use "sudo su nifi" to become the nifi user, and make sure you create this directory on your NiFi box, and that it is owned by the nifi user - chown -R nifi:nifi /tmp/input)
+1. Now add an UpdateAttribute processor
+  1. Configure it with a new dynamic property
+    1. In the properties tab, press the plus sign in the top right of the dialog
+    1. Call the property "filename" and set the value to something meaningful
+    1. Add a property called "mime.type" and set this to "application/gzip"
+1. Connect the two processors
+  1. Hover over the GetFile processor, until the begin connection icon appears
+  1. Drag this onto the UpdateAttribute processor
+  1. This brings up the connection configuration dialog
+    1. For now just leave this on defaults.
+1. Add a CompressContent processor and look at its properties, the defaults should work fine here.
+1. On settings, make sure you set "Auto-terminate relationships" on for failure
+configure it
+1. Now connect up the output of our UpdateAttributes processor to the new CompressContent
+1. Add a PutFile processor
+1. Configure the Directory in the PutFile processor properties. Note the conflict resolution strategy, and set this to replace. (nifi will create this directory for you)
+1. Set both success and failure relationships to auto-terminate in the settings tab
+1. Setup the connection between the CompressContent processor and the PutFile processor (only for the success relation!)
+
+Now you have you first complete flow, select the put file processor and press play at the left panel. If you copy a file (for example /var/log/ambari-agent/ambari-agent.log) to the input folder you chose, NiFi will pick it up and send it to the next processor. You can see that there's one flow file in the queue. 
+
+![Image](https://github.com/ahadjidj/Streaming-Workshop-with-HDF/raw/master/images/Queue.png)
+
+To inspect the content of the queue, right click on the queue, list queue, then on the small "i" at the left of the first row. You can see all the details of this flow file, its content if you click on "view" button and it's attributes if you move to the attributes tab. A flow flow is always a content and a list of attributes.
+
+![Image](https://github.com/ahadjidj/Streaming-Workshop-with-HDF/raw/master/images/Attributes.png)
+
+Now start the next processor (Update Attribute), and inspect the attributes of the flow file in the next queue. You should see new attributes added by the processor.
+
+Next, start the remaining processor and the flow file will processed by the remaining processors. Notice that the statistics in the Compress Content as show below. The size of input data is bigger than output data which shows that our processor is really compressing files. Now check that "/tmp/output" has your file compressed. 
+
+![Image](https://github.com/ahadjidj/Streaming-Workshop-with-HDF/raw/master/images/Compress.png)
+
+Congratulations!! you are now a NiFi flow designer :) note that it's possible to select all the processors (ex. with ctr-A) and start them in a batch. By doing this, your flow with be quickly ingested, compressed and stored in the new location. We did this step by step only to show NiFi working with slow motion. Test your flow again by copying a new file into /tmp/input. You should see the number of IN and OUT files moves to 2 in all the processors.
+
+![Image](https://github.com/ahadjidj/Streaming-Workshop-with-HDF/raw/master/images/Two.png)
+
+Adding processors to the root canvas is not a best practice. Things will get messy very quickly. To organise things, NiFi has an object called a process group (PG). PGs can be used to logically organize your NiFi environment, setup ACLs, reuse code, etc. Process Groups can be created beforehand and processors will be added to them directly. Since we already added several processors, we can select them (ctr-A), right click on one of them, select 'Group', give them a name and click on add. ET voila!
 
 # Lab 3 Platform preparation (admin persona)
 To enforce best practices and governance, there are a few tasks that an admin should do before granting access to the platform. These tasks include:
