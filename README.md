@@ -268,7 +268,7 @@ Add 3 PGs as shown below. Note the naming convention (sourceID_description) that
 
 ![Image](https://github.com/ahadjidj/Streaming-Workshop-with-HDF/raw/master/images/PGS.png)
 
-To add variable to a process, right click on the process group and then variables.
+To add variable to a process group, right click on the process group and then variables.
 
   - SRC1_CDCIngestion: ingest data from MySQL. This PG will use the below variables. For instance, we can change the variable elastic.url from localhost to the production Elastic cluster URL in a central location instead of updating it in every Elastic processor.
 
@@ -313,7 +313,7 @@ In this lab, we will use NiFi to ingest CDC data from MySQL. The MySQL DB has a 
   - Insert and update customer data in ElasticSearch where we will build the 360 view (SRC1_MergeRecord to SRC1PutElasticRecord)
   - Publish update events in Kafka to use them for fraud detection use cases with SAM (SRC1_PublishKafkaUpdate)
 
-## Configure MySQL to enable binary logs
+## Import NiFi template
 NiFi has a native CDC feature for MySQL databases. To use it, the MySQL DB must be configured to use binary logs. Use the following instructions to enable binary logs for the workshop DB and use ROW format CDC events.
 
   ```
