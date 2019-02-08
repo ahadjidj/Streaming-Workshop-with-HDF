@@ -11,7 +11,6 @@
   - Create record readers and writters in NiFi
   - Create process groups and variables in NiFi
   - Create events topics in Kafka
-  - Create environment and service pool in SAM
 - [Lab 3](#lab-3) - MySQL CDC data ingestion (DataEng persona)
   - Configure MySQL to enable binary logs
   - Ingest and format data in NiFi
@@ -23,8 +22,8 @@
   - Deploy MiNiFi agent
   - Deploy MiNiFi pipeline 
   - Design NiFi pipeline
-- [Lab 5](#lab-5) - TODO Fraud detection with SAM (Dev/Business Analyst persona)
-- [Lab 6](#lab-6) - TODO Realtime analytics with Druid (Dev/Business Analyst persona)
+- [Lab 5](#lab-5) - TODO Fraud detection with Kafka Streams (Dev persona)
+- [Lab 6](#lab-6) - TODO Realtime analytics with Kudu/Impala (Analyst persona)
 
   ---------------
 # Introduction
@@ -36,11 +35,12 @@ The objective of this workshop is to build an end to end streaming use case with
   - Deploy and use MiNiFi agents
   - Version flow developments and propagation from dev to prod
   - Integration between NiFi and Kafka to benefit from latest Kafka improvements (transactions, message headers, etc)
-  - Test mode in Stream Analytics Manager to mock a streaming application before deploying it
 
 # Use case
 
-In this workshop, we will build a simplified streaming use case for a retail company. We will ingest data from MySQL Database and web apps logs to build a 360 view of a customer in real-time. This data can be stored on modern databases such as HDP or ElasticSearch to offer more scalability and agility compared to legacy DBs. Based on these two data streams, we will implement a fraud detection algorithm based on business rules. For instance, if a user updates their account (for instance their address) and buys an item that's more expensive than their usual expenses, we may decide to investigate. This can be a sign that their account has been hacked and used to buy an expensive item that will be shipped to a new address. The following picture explains the high level architecture of the use case.
+In this workshop, we will build a simplified streaming use case for a retail company. We will ingest data from MySQL Database and web apps logs to build a 360 view of a customer in real-time. This data can be stored on modern databases such as HDP, CDH or ElasticSearch to offer more scalability and agility compared to legacy DBs. 
+
+Based on these two data streams, we can implement a fraud detection algorithm based on business rules. For instance, if a user updates his account (ex postal address) and buys an item that's more expensive than its average purchase, we may decide to investigate. This can be a sign that his account has been hacked and used to buy an expensive item that will be shipped to a new address. The following picture explains the high level architecture of the use case. Unfortunately, we have 2h30 fo this lab, and we won't be able to work on the stream processing part. You can continue to work on it later :)
 
 ![Image](https://github.com/ahadjidj/Streaming-Workshop-with-HDF/raw/master/images/use_cases.png)
 
@@ -48,10 +48,17 @@ In this workshop, we will build a simplified streaming use case for a retail com
 
 ## Create an HDF 3.2 cluster
 
-For the coming labs, we will install a one-node HDF cluster with NiFi, NiFi Registry, Kafka, Storm, Schema Registry and Stream Analytics Manager. We will use the field cloud for this workshop but the instructions will work for any cloud provider (AWS for instance).
+For this workshop, we will use a one-node HDF cluster with NiFi, NiFi Registry, Kafka, Storm, Schema Registry and Stream Analytics Manager on AWS. These HDF clusters have been previsioned for you. We will work in group of two SEs. To reduce AWS costs, each cluster will be used by two groups. Go to this Google spreadsheet and your names to one of the available clusters: https://docs.google.com/spreadsheets/d/1SYs7jPPsiMl7pAU14dx_ALenkp1X1YARPmHiKmQqb3w/edit#gid=0 
 
-  - Connect to your OpenStack account on field cloud and create a VM with at least 16 GB of RAM (this corresponds to a m3.xlarge instance). Keep the default parameters and num_vms to 1. Note the stack name that you defined as it will be used to access to your cluster. Let's assume that your stack name is hdfcluster.
-  - SSH to your cluster using the field PEM key ``` ssh -i field.pem centos@hdfcluster0.field.hortonworks.com ```
+To access your cluster with SSH, you should use the field PEM key available here https://drive.google.com/drive/folders/1B5GpIfg_WTlWFavSokqN41CvFoEYZNIL
+
+``` ssh -i .ssh/field.pem centos@ip ```
+
+If you would like to create your own cluster (for this lab or later), you can follow the instructions below
+  - Connect to your AWS account and create a CentOs 7 VM with at least 16 GB of RAM and 150GB of storage (ex: m4.xlarge instance)
+  - Add tags to your VM as per AWS expense policy (if applicable)
+  - Open ports required for the lab : 22 (SSH), 8080 (Ambari), 9090 (NiFi)
+  - Once your VM is ready, SSH to your cluster using your PEM key ``` ssh -i field.pem centos@ip ```
   - Launch the cluster install using the following instruction
   ```
   curl -sSL https://raw.githubusercontent.com/ahadjidj/Streaming-Workshop-with-HDF/master/scripts/install_hdf3-2_cluster.sh | sudo -E sh
@@ -60,8 +67,8 @@ This scripts installs a MySQL Database, ElasticSearch, MiNiFi, Ambari agent and 
 
 ## Access your Cluster
 
-  - When the script finishes the work, login to Ambari Web UI by opening http://{YOUR_IP}:8080 and log in with **admin/StrongPassword**
-  - Open the different UIs and check that all services are running and are healthy (NiFi, NiFi Registry, SR, SAM, etc)
+  - Login to Ambari Web UI by opening http://{YOUR_IP}:8080 and log in with **admin/StrongPassword**
+  - From Ambari, navigate to the different service, check that all services are running and are healthy and try to access to their UI from the right panel (NiFi, NiFi Registry, SR, SAM, etc)
   - Connect to the MySQL DB using bash or tools like MySQLWorkbench. A workshop DB has been created for the lab. You have also two users:
     - **root/StrongPassword** usable from localhost only
     - **workshop/StrongPassword** usable from remote and has full privileges on the workshop DB 
