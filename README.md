@@ -88,7 +88,9 @@ In this lab, we will implement some of these best practices to set the right env
 
 ## Create schemas in Schema Registry
 
-In this workshop, we will manipulate two type of events. Go to Schema Registry from Ambari and create the following schemas.
+In this workshop, we will manipulate three type of events. Go to Schema Registry from Ambari and create the following schemas as shown below:
+
+![Image](https://github.com/ahadjidj/Streaming-Workshop-with-HDF/raw/master/images/SR.png)
 
 ### Customer events
 
@@ -150,6 +152,7 @@ These events are data coming from Web Application through the MiNiFi agents depl
   ]
 }
   ```
+### Logs_view events
 We also need another logs event (logs_view) that contain only the product browsing session information with the buy and price fields. We will see why later in the labs.
 
   ```
