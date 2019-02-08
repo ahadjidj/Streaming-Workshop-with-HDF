@@ -40,7 +40,7 @@ The objective of this workshop is to build an end to end streaming use case with
 
 In this workshop, we will build a simplified streaming use case for a retail company. We will ingest data from MySQL Database and web apps logs to build a 360 view of a customer in real-time. This data can be stored on modern databases such as HDP, CDH or ElasticSearch to offer more scalability and agility compared to legacy DBs. 
 
-Based on these two data streams, we can implement a fraud detection algorithm based on business rules. For instance, if a user updates his account (ex postal address) and buys an item that's more expensive than its average purchase, we may decide to investigate. This can be a sign that his account has been hacked and used to buy an expensive item that will be shipped to a new address. The following picture explains the high level architecture of the use case. Unfortunately, we have 2h30 fo this lab, and we won't be able to work on the stream processing part. You can continue to work on it later :)
+Based on these two data streams, we can implement a fraud detection algorithm with ML algorithm or business rules. For instance, if a user updates his account (ex postal address) and buys an item that's more expensive than its average purchase, we may decide to investigate. This can be a sign that his account has been hacked and used to buy an expensive item that will be shipped to a new address. The following picture explains the high level architecture of the use case. Unfortunately, we have 2h30 fo this lab, and we won't be able to work on the stream processing part. You can continue to work on it later :)
 
 ![Image](https://github.com/ahadjidj/Streaming-Workshop-with-HDF/raw/master/images/use_cases.png)
 
@@ -48,7 +48,7 @@ Based on these two data streams, we can implement a fraud detection algorithm ba
 
 ## Create an HDF 3.2 cluster
 
-For this workshop, we will use a one-node HDF cluster with NiFi, NiFi Registry, Kafka, Storm, Schema Registry and Stream Analytics Manager on AWS. These HDF clusters have been previsioned for you. We will work in group of two SEs. To reduce AWS costs, each cluster will be used by two groups. Go to this Google spreadsheet and your names to one of the available clusters: https://docs.google.com/spreadsheets/d/1SYs7jPPsiMl7pAU14dx_ALenkp1X1YARPmHiKmQqb3w/edit#gid=0 
+For this workshop, we will use a one-node HDF cluster with NiFi, NiFi Registry, Kafka, Storm, Schema Registry and Stream Analytics Manager on AWS. These HDF clusters have been previsioned for you. We will work in groups of two SEs. To reduce AWS costs, each cluster will be used by two groups. Go to this Google spreadsheet and add your names to one of the available clusters: https://docs.google.com/spreadsheets/d/1SYs7jPPsiMl7pAU14dx_ALenkp1X1YARPmHiKmQqb3w/edit#gid=0 
 
 To access your cluster with SSH, you should use the field PEM key available here https://drive.google.com/drive/folders/1B5GpIfg_WTlWFavSokqN41CvFoEYZNIL
 
@@ -57,7 +57,7 @@ To access your cluster with SSH, you should use the field PEM key available here
 If you would like to create your own cluster (for this lab or later), you can follow the instructions below
   - Connect to your AWS account and create a CentOs 7 VM with at least 16 GB of RAM and 150GB of storage (ex: m4.xlarge instance)
   - Add tags to your VM as per AWS expense policy (if applicable)
-  - Open ports required for the lab : 22 (SSH), 8080 (Ambari), 9090 (NiFi)
+  - Open ports required for the lab : 22 (SSH), 8080 (Ambari), 9090 (NiFi), 7788 (SR), 61080 (NiFi Registry), 3306 (MySQL)
   - Once your VM is ready, SSH to your cluster using your PEM key ``` ssh -i field.pem centos@ip ```
   - Launch the cluster install using the following instruction
   ```
@@ -74,7 +74,7 @@ This scripts installs a MySQL Database, ElasticSearch, MiNiFi, Ambari agent and 
     - **workshop/StrongPassword** usable from remote and has full privileges on the workshop DB 
     
 # Lab 2 Platform preparation (admin persona)
-To enforce best practices and a minimal governance, there are a few tasks that an admin should do before granting access to the platform. These tasks include:
+To enforce best practices and governance, there are a few tasks that an admin should do before granting access to the platform. These tasks include:
   - Define users, roles and privileges on each tool (SAM, NiFi, Etc)
   - Define the schemas of events that we will use. This avoids having developpers using their own schemas which makes applications integration and evolution a real nightmare.
   - Define and enforce naming convention that makes it easier to manage applications lifecycle (eg. NiFi PG and processors names)
@@ -186,10 +186,10 @@ For the schema text, use the following Avro description, also available [here](h
   ```
 ## Create record readers and writters in NiFi
 
-To use these schema in NiFi, we will leverage record based processors. These processors use record readers and writers to offer improved performances and to use schemas defined globally in a Schema Registry. Our sources (MySQL CDC event and Web App logs) generate data in JSON format so we will need a JSON reader to deserialise data. We will store this data in ElasticSearch and publish it to Kafka. Hence, we need JSON and Avro writers to serialize the data. To add a reader/writer accessible by all our NiFi flows, navigate to the root canvas, click on Configure, Controller service and click on "+" button.
+To use these schema in NiFi, we will leverage record based processors. These processors use record readers and writers to offer improved performances and to use schemas defined globally in a Schema Registry. Our sources (MySQL CDC event and Web App logs) generate data in JSON format so we will need a JSON reader to deserialise data. We will store this data in ElasticSearch and publish it to Kafka. Hence, we need JSON and Avro writers to serialize the data. To add a reader/writer accessible by all our NiFi flows, navigate to the NiFi root canvas, click on Configure on the left panel, Controller services and click on "+" button.
 
 ### Add a HortonworksSchemaRegistry
-Before adding any record reader/writer, we need to add a Hortonworks Schema Registry to tell NiFi where to look for schemas definitions. Add a HortonworksSchemaRegistry controller and configure it with your SR URL as shown below:
+Before adding any record reader/writer, we need to add a Schema Registry to tell NiFi where to look for schema definitions. NiFi supports several Schema Registries (Hortonworks, Confluent, NiFi schema registry). Hortonworks Schema registry is a cross tool regsitry that's integrated with NiFi, Kafka and SAM. Add a HortonworksSchemaRegistry controller to NiFi and configure it with your SR URL as shown below:
 
 ![Image](https://github.com/ahadjidj/Streaming-Workshop-with-HDF/raw/master/images/HortonworksSchemaRegistry.png)
 
@@ -204,7 +204,7 @@ To serialize JSON data for which we have a defined schema, add a JsonRecordSetWr
 ![Image](https://github.com/ahadjidj/Streaming-Workshop-with-HDF/raw/master/images/JsonRecordSetWriter.png)
 
 ### Add AvroRecordSetWriter
-Event collected by NiFi will be published to Kafka for further consumption. In the second use case, we will use SAM to analyse data in realtime and detect potential frauds. SAM expects the events to be in Avro format with the first byte containing an encoded schema reference. To prepare data for SAM consumption, we need to add AvroRecordSetWriter and set **Schema Write Strategy** to **HWX Content-Encoded Schema Reference** as shown below:
+Event collected by NiFi will be published to Kafka for further consumption. To prepare data for streaming engine consumption, we need to add AvroRecordSetWriter and set **Schema Write Strategy** to **HWX Content-Encoded Schema Reference** as shown below:
 
 ![Image](https://github.com/ahadjidj/Streaming-Workshop-with-HDF/raw/master/images/AvroRecordSetWriter.png)
 
@@ -214,7 +214,9 @@ It's critical to organize your flows when you have a shared NiFi instance. NiFi 
 ![Image](https://github.com/ahadjidj/Streaming-Workshop-with-HDF/raw/master/images/PGS.png)
 
   - SRC1_CDCIngestion: ingest data from MySQL. This PG will use the below variables. For instance, we can change the variable elastic.url from localhost to the production Elastic cluster URL in a central location instead of updating it in every Elastic processor.
-  
+
+Add a process group to the root canvas. Right click on the process group, and go to variable menu to add new variables.
+
   ```
 mysql.driver.location : /usr/share/java/mysql-connector-java.jar
 mysql.username : root
@@ -245,10 +247,6 @@ kafka.url : hdfcluster0.field.hortonworks.com:6667
 /usr/hdf/current/kafka-broker/bin/kafka-topics.sh --zookeeper hdfcluster0.field.hortonworks.com:2181 --create --topic alerts --partitions 1 --replication-factor 1
 
   ```  
- ## Create service pool and application environment in SAM  
-Finally, we need to provision a service pool and an environment in SAM for our application. For the service pool, use the HDF cluster URL : http://hdfcluster0.field.hortonworks.com:8080/api/v1/clusters/hdfcluster
-
-![Image](https://github.com/ahadjidj/Streaming-Workshop-with-HDF/raw/master/images/ServicePool.png)
 
 # Lab 3
 In this lab, we will use NiFi to ingest CDC data from MySQL. The MySQL DB has a table "customers" that stores information on our customers. We would like to receive each change in the table as an event (insert, update, etc) and use it with other sources to build a customer 360 view in ElasticSearch. The high level flow can be described as follows:
