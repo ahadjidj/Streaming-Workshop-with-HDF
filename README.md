@@ -88,20 +88,20 @@ Let's create a simple NiFi flow that watch the /tmp/input directory, and each ti
 Add and configure the following processors:
 1. Select the GetFile Processor and add it
 1. Configure the GetFile Processor
-  *. Double-click on the new processor
-  1. The tabbed dialog should show settings, give the processor a name (ex. Get File From TMP)
-  1. Select the properties tab
-  1. Set Input Directory to "/tmp/input" (before doing this use "sudo su nifi" to become the nifi user, and make sure you create this directory on your NiFi box, and that it is owned by the nifi user - chown -R nifi:nifi /tmp/input)
+   1. Double-click on the new processor
+   1. The tabbed dialog should show settings, give the processor a name (ex. Get File From TMP)
+   1. Select the properties tab
+   1. Set Input Directory to "/tmp/input" (before doing this use "sudo su nifi" to become the nifi user, and make sure you create this directory on your NiFi box, and that it is owned by the nifi user - chown -R nifi:nifi /tmp/input)
 1. Now add an UpdateAttribute processor
-  1. Configure it with a new dynamic property
-    1. In the properties tab, press the plus sign in the top right of the dialog
-    1. Call the property "filename" and set the value to something meaningful
-    1. Add a property called "mime.type" and set this to "application/gzip"
+   1. Configure it with a new dynamic property
+      1. In the properties tab, press the plus sign in the top right of the dialog
+      1. Call the property "filename" and set the value to something meaningful
+      1. Add a property called "mime.type" and set this to "application/gzip"
 1. Connect the two processors
-  1. Hover over the GetFile processor, until the begin connection icon appears
-  1. Drag this onto the UpdateAttribute processor
-  1. This brings up the connection configuration dialog
-    1. For now just leave this on defaults.
+   1. Hover over the GetFile processor, until the begin connection icon appears
+   1. Drag this onto the UpdateAttribute processor
+   1. This brings up the connection configuration dialog
+      1. For now just leave this on defaults.
 1. Add a CompressContent processor and look at its properties, the defaults should work fine here.
 1. On settings, make sure you set "Auto-terminate relationships" on for failure
 configure it
