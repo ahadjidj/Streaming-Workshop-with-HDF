@@ -182,22 +182,25 @@ To add a reader/writer accessible by all our NiFi flows, click on Configure on t
 ![Image](https://github.com/ahadjidj/Streaming-Workshop-with-HDF/raw/master/images/Configure.png)
 
 ### Add a HortonworksSchemaRegistry
-Before adding any record reader/writer, we need to add a Schema Registry to tell NiFi where to look for schema definitions. NiFi supports several Schema Registries (Hortonworks, Confluent, NiFi schema registry). Hortonworks Schema registry is a cross tool regsitry that's integrated with NiFi, Kafka and SAM. Add a HortonworksSchemaRegistry controller to NiFi and configure it with your SR URL as shown below:
+Before adding any record reader/writer, we need to add a Schema Registry to tell NiFi where to look for schema definitions. NiFi supports several Schema Registries (Hortonworks, Confluent, NiFi schema registry). Hortonworks Schema registry is a cross tool registry that's integrated with NiFi, Kafka and SAM. Add a HortonworksSchemaRegistry controller to NiFi and configure it with your SR URL as shown below. Once created, make sure to start it by clicking on the lightning icon.
 
 ![Image](https://github.com/ahadjidj/Streaming-Workshop-with-HDF/raw/master/images/HortonworksSchemaRegistry.png)
 
+![Image](https://github.com/ahadjidj/Streaming-Workshop-with-HDF/raw/master/images/Lightning.png)
+
+
 ### Add JsonTreeReader
-To deserialize JSON data, add a JsonTreeReader and configure it as shown below. Note that the **Schema Access Strategy** is set to **Use 'Schema Name' Property**. This means that flow files going through this serializer must have an attribute **schema.name** that specifies the name of the schema that should be used.
+To deserialize JSON data, add a JsonTreeReader and configure it as shown below. Note that the **Schema Access Strategy** is set to **Use 'Schema Name' Property**. This means that flow files going through this serializer must have an attribute **schema.name** that specifies the name of the schema that should be used. Start the Reader by clicking on the lightning icon.
 
 ![Image](https://github.com/ahadjidj/Streaming-Workshop-with-HDF/raw/master/images/JsonTreeReader.png)
 
 ### Add JsonRecordSetWriter
-To serialize JSON data for which we have a defined schema, add a JsonRecordSetWriter and configure it as shown below.
+To serialize JSON data for which we have a defined schema, add a JsonRecordSetWriter and configure it as shown below. Start the Writter by clicking on the lightning icon.
 
 ![Image](https://github.com/ahadjidj/Streaming-Workshop-with-HDF/raw/master/images/JsonRecordSetWriter.png)
 
 ### Add AvroRecordSetWriter
-Event collected by NiFi will be published to Kafka for further consumption. To prepare data for streaming engine consumption, we need to add AvroRecordSetWriter and set **Schema Write Strategy** to **HWX Content-Encoded Schema Reference** as shown below:
+Event collected by NiFi will be published to Kafka for further consumption. To prepare data for streaming engine consumption, we need to add AvroRecordSetWriter and set **Schema Write Strategy** to **HWX Content-Encoded Schema Reference** as shown below. Start the Writter by clicking on the lightning icon.
 
 ![Image](https://github.com/ahadjidj/Streaming-Workshop-with-HDF/raw/master/images/AvroRecordSetWriter.png)
 
@@ -205,6 +208,8 @@ Event collected by NiFi will be published to Kafka for further consumption. To p
 It's critical to organize your flows when you have a shared NiFi instance. NiFi flows can be organized per data sources where each Process Group defines the processing that should be applied to data coming from this source. If you have several flow developers working on different projects, you can assign roles and privileges to each one of them on those process groups. The PG organisation is also useful to declare variables for each source or project and make flow migration from one environment to another one easier. 
 
 Add 3 PGs as shown below. Note the naming convention (sourceID_description) that will be useful for flows migration and monitoring.
+
+![Image](https://github.com/ahadjidj/Streaming-Workshop-with-HDF/raw/master/images/Add_PG.png)
 
 ![Image](https://github.com/ahadjidj/Streaming-Workshop-with-HDF/raw/master/images/PGS.png)
 
