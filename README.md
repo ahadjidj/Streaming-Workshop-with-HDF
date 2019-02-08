@@ -6,24 +6,25 @@
 - [Lab 1](#lab-1) - Cluster installation
   - Create an HDF 3.2 cluster
   - Access your cluster
-- [Lab 2](#lab-2) - Platform preparation (admin persona)
+- [Lab 2](#lab-2) - Simple flow management
+- [Lab 3](#lab-3) - Platform preparation (admin persona)
   - Create schemas in Schema Registry
   - Create record readers and writters in NiFi
   - Create process groups and variables in NiFi
   - Create events topics in Kafka
-- [Lab 3](#lab-3) - MySQL CDC data ingestion (DataEng persona)
+- [Lab 4](#lab-4) - MySQL CDC data ingestion (DataEng persona)
   - Configure MySQL to enable binary logs
   - Ingest and format data in NiFi
   - Store events in ElasticSearch
   - Publish update events in Kafka
   - Version flow in NiFi Registry
-- [Lab 4](#lab-4) - Logs data collection with MiNiFi(DataEng persona)
+- [Lab 5](#lab-5) - Logs data collection with MiNiFi(DataEng persona)
   - Design MiNiFi pipeline
   - Deploy MiNiFi agent
   - Deploy MiNiFi pipeline 
   - Design NiFi pipeline
-- [Lab 5](#lab-5) - TODO Fraud detection with Kafka Streams (Dev persona)
-- [Lab 6](#lab-6) - TODO Realtime analytics with Kudu/Impala (Analyst persona)
+- [Lab 6](#lab-6) - TODO Fraud detection with Kafka Streams (Dev persona)
+- [Lab 7](#lab-7) - TODO Realtime analytics with Kudu/Impala (Analyst persona)
 
   ---------------
 # Introduction
@@ -37,10 +38,11 @@ The objective of this workshop is to build an end to end streaming use case with
   - Integration between NiFi and Kafka to benefit from latest Kafka improvements (transactions, message headers, etc)
 
 # Use case
+In this workshop, we will build a simplified streaming use case for a retail company. We will ingest customer data from MySQL Database and web apps logs from web applications to build a 360 view of a customer in real-time. This data can be stored on modern datastores such as HBase, Kudu or ElasticSearch depending on the use case.
 
-In this workshop, we will build a simplified streaming use case for a retail company. We will ingest data from MySQL Database and web apps logs to build a 360 view of a customer in real-time. This data can be stored on modern databases such as HDP, CDH or ElasticSearch to offer more scalability and agility compared to legacy DBs. 
+Based on these two data streams, we can implement a fraud detection algorithm with ML algorithm or business rules. For instance, if a user updates his account (ex postal address) and buys an item that's more expensive than its average purchase, we may decide to investigate. This can be a sign that his account has been hacked and used to buy an expensive item that will be shipped to a new address. The following picture explains the high level architecture of the use case. 
 
-Based on these two data streams, we can implement a fraud detection algorithm with ML algorithm or business rules. For instance, if a user updates his account (ex postal address) and buys an item that's more expensive than its average purchase, we may decide to investigate. This can be a sign that his account has been hacked and used to buy an expensive item that will be shipped to a new address. The following picture explains the high level architecture of the use case. Unfortunately, we have 2h30 fo this lab, and we won't be able to work on the stream processing part. You can continue to work on it later :)
+For today's lab, we have only 2h30 and we will focus only on the platform and flow management parts. You can come back to this lab later to work on the edge collection, stream processing and analytics parts.
 
 ![Image](https://github.com/ahadjidj/Streaming-Workshop-with-HDF/raw/master/images/use_cases.png)
 
@@ -48,7 +50,7 @@ Based on these two data streams, we can implement a fraud detection algorithm wi
 
 ## Create an HDF 3.2 cluster
 
-For this workshop, we will use a one-node HDF cluster with NiFi, NiFi Registry, Kafka, Storm, Schema Registry and Stream Analytics Manager on AWS. These HDF clusters have been previsioned for you. We will work in groups of two SEs. To reduce AWS costs, each cluster will be used by two groups. Go to this Google spreadsheet and add your names to one of the available clusters: https://docs.google.com/spreadsheets/d/1SYs7jPPsiMl7pAU14dx_ALenkp1X1YARPmHiKmQqb3w/edit#gid=0 
+For this workshop, we will use a one-node HDF cluster with NiFi, NiFi Registry, Kafka, Storm, Schema Registry and Stream Analytics Manager on AWS. These HDF clusters have been previsioned for you. We will work in groups of two SEs. Go to this Google spreadsheet and add your names to one of the available clusters: https://docs.google.com/spreadsheets/d/1SYs7jPPsiMl7pAU14dx_ALenkp1X1YARPmHiKmQqb3w/edit#gid=0 
 
 To access your cluster with SSH, you should use the field PEM key available here https://drive.google.com/drive/folders/1B5GpIfg_WTlWFavSokqN41CvFoEYZNIL
 
@@ -71,12 +73,17 @@ This scripts installs a MySQL Database, ElasticSearch, MiNiFi, Ambari agent and 
 ## Access your Cluster
 
   - Login to Ambari Web UI by opening http://{YOUR_IP}:8080 and log in with **admin/StrongPassword**
-  - From Ambari, navigate to the different service, check that all services are running and are healthy and try to access to their UI from the right panel (NiFi, NiFi Registry, SR, SAM, etc)
+  - From Ambari, navigate to the different services, check that all services are running and healthy and try to access their UI from the right panel (NiFi, NiFi Registry & SR)
   - Connect to the MySQL DB using bash or tools like MySQLWorkbench. A workshop DB has been created for the lab. You have also two users:
     - **root/StrongPassword** usable from localhost only
     - **workshop/StrongPassword** usable from remote and has full privileges on the workshop DB 
-    
-# Lab 2 Platform preparation (admin persona)
+
+# Lab 2 Simple flow management
+Great! now that you have your HDF cluster up and running, and that you get familiar with it, let's warm with a simple NiFi exercise that will help us introduce basic NiFi notions. If you are already familiar with NiFi, you can skip this section and work on Lab 3 directly.
+
+
+
+# Lab 3 Platform preparation (admin persona)
 To enforce best practices and governance, there are a few tasks that an admin should do before granting access to the platform. These tasks include:
   - Define users, roles and privileges on each tool (SAM, NiFi, Etc)
   - Define the schemas of events that we will use. This avoids having developpers using their own schemas which makes applications integration and evolution a real nightmare.
@@ -248,7 +255,7 @@ kafka.url : USE-YOUR-INTERNAL-CLUSTER-ADDRESS:6667
 
   ```  
 
-# Lab 3
+# Lab 4
 In this lab, we will use NiFi to ingest CDC data from MySQL. The MySQL DB has a table "customers" that stores information on our customers. We would like to receive each change in the table as an event (insert, update, etc) and use it with other sources to build a customer 360 view in ElasticSearch. The high level flow can be described as follows:
 
 ![Image](https://github.com/ahadjidj/Streaming-Workshop-with-HDF/raw/master/images/UC1.png)
@@ -345,7 +352,7 @@ Now that we have our first use case implemented, let's explore the NiFi Flow Reg
 
 Unfortunately, we don't have another cluster to deploy our flow so let's deploy it in the same instance. Add a new PG to NiFi, click on import, and select your flow. Explore registry features: for instance, change variable in the second instance, make changes in the first instance, and save the new flow version. This should not impact your local variables.
 
-# Lab 4
+# Lab 5
 The objective of this lab is to ingest web applications logs with MiNiFi. Each web application generates logs on customer behaviour on the website. An event is a JSON line that describes a user behaviour on a product web page and gives information on:
   - Id: the user browsing the website. id = 0 means that the user is not connected or not known.
   - Product: the product id that the customer has looked at.
