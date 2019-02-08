@@ -52,12 +52,15 @@ For this workshop, we will use a one-node HDF cluster with NiFi, NiFi Registry, 
 
 To access your cluster with SSH, you should use the field PEM key available here https://drive.google.com/drive/folders/1B5GpIfg_WTlWFavSokqN41CvFoEYZNIL
 
+Download the field key, change its persmission (chmod 400 field.pem) and connect to the cluster:
 ``` ssh -i .ssh/field.pem centos@ip ```
 
 If you would like to create your own cluster (for this lab or later), you can follow the instructions below
-  - Connect to your AWS account and create a CentOs 7 VM with at least 16 GB of RAM and 150GB of storage (ex: m4.xlarge instance)
-  - Add tags to your VM as per AWS expense policy (if applicable)
+  - Connect to your AWS account and create a CentOs 7 VM with at least 16 GB of RAM (ex: m4.xlarge instance)
+  - Make sure to add at least 150GB of storage to the VM
+  - Add tags to your VM as per AWS expense policy : owner, business justification and end date(if applicable)
   - Open ports required for the lab : 22 (SSH), 8080 (Ambari), 9090 (NiFi), 7788 (SR), 61080 (NiFi Registry), 3306 (MySQL)
+  - Make sure to create and download an SSH key
   - Once your VM is ready, SSH to your cluster using your PEM key ``` ssh -i field.pem centos@ip ```
   - Launch the cluster install using the following instruction
   ```
@@ -85,7 +88,7 @@ In this lab, we will implement some of these best practices to set the right env
 
 ## Create schemas in Schema Registry
 
-In this workshop, we will manipulate three type of events.
+In this workshop, we will manipulate two type of events. Go to Schema Registry from Ambari and create the following schemas.
 
 ### Customer events
 
@@ -160,33 +163,10 @@ We also need another logs event (logs_view) that contain only the product browsi
   ]
 }
   ```
-### Alerts events
-At the end of the workshop, we will use the different events to detect eventual frauds. If a fraud is detected, we will send an alert to inform an application or a supervisor. To achieve this, we need a new schema for these events. Go to Schema Registry and add a new schema with these details:
-  - Name: alerts
-  - Descrption: schema for alerts events
-  - Type: Avro Schema Provider
-  - Schema Group: Kafka
-  - Compatibility: both
-  - Evolve: true
- 
-For the schema text, use the following Avro description, also available [here](https://raw.githubusercontent.com/ahadjidj/Streaming-Workshop-with-HDF/master/schemas/alerts.asvc)
- 
-  ```
-{
-  "type": "record",
-  "name": "alerts",
-  "fields" : [
-    {"name": "_id", "type": "int"},
-    {"name": "price", "type": ["null", "int"]},
-    {"name": "first_name", "type": ["null", "string"]},
-    {"name": "last_name", "type": ["null", "string"]},
-    {"name": "averagebasket", "type": ["null", "int"]}
-  ]
-}
-  ```
 ## Create record readers and writters in NiFi
+To use these schema in NiFi, we will leverage record based processors. These processors use record readers and writers to offer improved performances and to use schemas defined globally in a Schema Registry. Our sources (MySQL CDC event and Web App logs) generate data in JSON format so we will need a JSON reader to deserialise data. We will store this data in ElasticSearch and publish it to Kafka. Hence, we need JSON and Avro writers to serialize the data. To add a reader/writer accessible by all our NiFi flows, click on Configure on the left panel, Controller services and click on "+" button.
 
-To use these schema in NiFi, we will leverage record based processors. These processors use record readers and writers to offer improved performances and to use schemas defined globally in a Schema Registry. Our sources (MySQL CDC event and Web App logs) generate data in JSON format so we will need a JSON reader to deserialise data. We will store this data in ElasticSearch and publish it to Kafka. Hence, we need JSON and Avro writers to serialize the data. To add a reader/writer accessible by all our NiFi flows, navigate to the NiFi root canvas, click on Configure on the left panel, Controller services and click on "+" button.
+![Image](https://github.com/ahadjidj/Streaming-Workshop-with-HDF/raw/master/images/Configure.png)
 
 ### Add a HortonworksSchemaRegistry
 Before adding any record reader/writer, we need to add a Schema Registry to tell NiFi where to look for schema definitions. NiFi supports several Schema Registries (Hortonworks, Confluent, NiFi schema registry). Hortonworks Schema registry is a cross tool regsitry that's integrated with NiFi, Kafka and SAM. Add a HortonworksSchemaRegistry controller to NiFi and configure it with your SR URL as shown below:
@@ -209,13 +189,15 @@ Event collected by NiFi will be published to Kafka for further consumption. To p
 ![Image](https://github.com/ahadjidj/Streaming-Workshop-with-HDF/raw/master/images/AvroRecordSetWriter.png)
 
 ## Create process groups and variables in NiFi
-It's critical to organize your flows when you have a shared NiFi instance. NiFi flows can be organized per data sources where each Process Group defines the processing that should be applied to data coming from this source. If you have several flow developers working on different projects, you can assign roles and privileges to each one of them on those process groups. The PG organisation is also useful to declare variables for each source or project and make flow migration from one environment to another one easier. In this workshop, we will define 3 PGs as shown below. Note the naming convention (sourceID_description) that will be useful for flows migration and monitoring.
+It's critical to organize your flows when you have a shared NiFi instance. NiFi flows can be organized per data sources where each Process Group defines the processing that should be applied to data coming from this source. If you have several flow developers working on different projects, you can assign roles and privileges to each one of them on those process groups. The PG organisation is also useful to declare variables for each source or project and make flow migration from one environment to another one easier. 
+
+Add 3 PGs as shown below. Note the naming convention (sourceID_description) that will be useful for flows migration and monitoring.
 
 ![Image](https://github.com/ahadjidj/Streaming-Workshop-with-HDF/raw/master/images/PGS.png)
 
-  - SRC1_CDCIngestion: ingest data from MySQL. This PG will use the below variables. For instance, we can change the variable elastic.url from localhost to the production Elastic cluster URL in a central location instead of updating it in every Elastic processor.
+To add variable to a process, right click on the process group and then variables.
 
-Add a process group to the root canvas. Right click on the process group, and go to variable menu to add new variables.
+  - SRC1_CDCIngestion: ingest data from MySQL. This PG will use the below variables. For instance, we can change the variable elastic.url from localhost to the production Elastic cluster URL in a central location instead of updating it in every Elastic processor.
 
   ```
 mysql.driver.location : /usr/share/java/mysql-connector-java.jar
