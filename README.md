@@ -88,8 +88,8 @@ Let's create a simple NiFi flow that watch the /tmp/input directory, and each ti
 Add and configure the following processors:
 1. Select the GetFile Processor and add it
 1. Configure the GetFile Processor
-  1. Double-click on the new processor
-  1. The tabbed dialog should show settings, give the processor a name (ex. Get File From TMP)
+  i. Double-click on the new processor
+  i. The tabbed dialog should show settings, give the processor a name (ex. Get File From TMP)
   1. Select the properties tab
   1. Set Input Directory to "/tmp/input" (before doing this use "sudo su nifi" to become the nifi user, and make sure you create this directory on your NiFi box, and that it is owned by the nifi user - chown -R nifi:nifi /tmp/input)
 1. Now add an UpdateAttribute processor
@@ -129,7 +129,7 @@ Congratulations!! you are now a NiFi flow designer :) note that it's possible to
 
 ![Image](https://github.com/ahadjidj/Streaming-Workshop-with-HDF/raw/master/images/Two.png)
 
-Adding processors to the root canvas is not a best practice. Things will get messy very quickly. To organise things, NiFi has an object called a process group (PG). PGs can be used to logically organize your NiFi environment, setup ACLs, reuse code, etc. Process Groups can be created beforehand and processors will be added to them directly. Since we already added several processors, we can select them (ctr-A), right click on one of them, select 'Group', give them a name and click on add. ET voila!
+Adding processors to the root canvas is not a best practice. Things will get messy very quickly. To organise things, NiFi has an object called a process group (PG). PGs can be used to logically organize your NiFi environment, setup ACLs, reuse code, etc. Process Groups can be created beforehand and processors will be added to them directly. Since we already added several processors, we can select them (ctr-A), right click on one of them, select 'Group', give them a name and click on add. ET voila! We are already ready to tackle advanced topics now.
 
 # Lab 3 Platform preparation (admin persona)
 To enforce best practices and governance, there are a few tasks that an admin should do before granting access to the platform. These tasks include:
