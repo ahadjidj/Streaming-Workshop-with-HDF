@@ -153,7 +153,15 @@ These events are data coming from Web Application through the MiNiFi agents depl
 }
   ```
 ### Logs_view events
-We also need another logs event (logs_view) that contain only the product browsing session information with the buy and price fields. We will see why later in the labs.
+We also need another logs event (logs_view) that contain only the product browsing session information with the buy and price fields. We will see why later in the labs. Go to Schema Registry and add a new schema with these details:
+  - Name: logs
+  - Descrption: schema for logs events
+  - Type: Avro Schema Provider
+  - Schema Group: Kafka
+  - Compatibility: both
+  - Evolve: true
+  
+For the schema text, use the following Avro description:
 
   ```
 {
@@ -167,7 +175,9 @@ We also need another logs event (logs_view) that contain only the product browsi
 }
   ```
 ## Create record readers and writters in NiFi
-To use these schema in NiFi, we will leverage record based processors. These processors use record readers and writers to offer improved performances and to use schemas defined globally in a Schema Registry. Our sources (MySQL CDC event and Web App logs) generate data in JSON format so we will need a JSON reader to deserialise data. We will store this data in ElasticSearch and publish it to Kafka. Hence, we need JSON and Avro writers to serialize the data. To add a reader/writer accessible by all our NiFi flows, click on Configure on the left panel, Controller services and click on "+" button.
+To use these schema in NiFi, we will leverage record based processors. These processors use record readers and writers to offer improved performances and to use schemas defined globally in a Schema Registry. Our sources (MySQL CDC event and Web App logs) generate data in JSON format so we will need a JSON reader to deserialise data. We will store this data in ElasticSearch and publish it to Kafka. Hence, we need JSON and Avro writers to serialize the data. 
+
+To add a reader/writer accessible by all our NiFi flows, click on Configure on the left panel, Controller services and click on "+" button. Note that you can add a Reader/Writter inside a particular process group to isolate them. Readers/Writters created inside a process group will be visible only for processors inside this PG. 
 
 ![Image](https://github.com/ahadjidj/Streaming-Workshop-with-HDF/raw/master/images/Configure.png)
 
