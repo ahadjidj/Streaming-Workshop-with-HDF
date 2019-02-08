@@ -221,10 +221,10 @@ To add variable to a process, right click on the process group and then variable
 mysql.driver.location : /usr/share/java/mysql-connector-java.jar
 mysql.username : root
 mysql.serverid : 123
-mysql.host : 127.0.0.1:3306
+mysql.host : localhost:3306
 source.schema : customers
 elastic.url : http://localhost:9200
-kafka.url : hdfcluster0.field.hortonworks.com:6667
+kafka.url : USE-YOUR-INTERNAL-CLUSTER-ADDRESS:6667 # You can get this address from Ambari config or from the Google Spreadsheet
   ```  
 ![Image](https://github.com/ahadjidj/Streaming-Workshop-with-HDF/raw/master/images/PG1.png)
 
@@ -233,7 +233,7 @@ kafka.url : hdfcluster0.field.hortonworks.com:6667
   ```
 source.schema : logs
 elastic.url : http://localhost:9200
-kafka.url : hdfcluster0.field.hortonworks.com:6667
+kafka.url : USE-YOUR-INTERNAL-CLUSTER-ADDRESS:6667
   ```  
   - Agent1_LogsIngestion: the template that will be deployed in each MiNiFi agent for log ingestion. This PG don't use any variable.
  
@@ -242,9 +242,9 @@ kafka.url : hdfcluster0.field.hortonworks.com:6667
  As an admin, we need to provision Kafka topics and define their access policies. Use the following instructions to create the topics that we will use. In the future, topic provisioning will be possible through SMM.
 
   ```
-/usr/hdf/current/kafka-broker/bin/kafka-topics.sh --zookeeper hdfcluster0.field.hortonworks.com:2181 --create --topic customers --partitions 1 --replication-factor 1
-/usr/hdf/current/kafka-broker/bin/kafka-topics.sh --zookeeper hdfcluster0.field.hortonworks.com:2181 --create --topic logs --partitions 1 --replication-factor 1
-/usr/hdf/current/kafka-broker/bin/kafka-topics.sh --zookeeper hdfcluster0.field.hortonworks.com:2181 --create --topic alerts --partitions 1 --replication-factor 1
+/usr/hdf/current/kafka-broker/bin/kafka-topics.sh --zookeeper localhost:2181 --create --topic customers --partitions 1 --replication-factor 1
+/usr/hdf/current/kafka-broker/bin/kafka-topics.sh --zookeeper localhost:2181 --create --topic logs --partitions 1 --replication-factor 1
+/usr/hdf/current/kafka-broker/bin/kafka-topics.sh --zookeeper localhost:2181 --create --topic alerts --partitions 1 --replication-factor 1
 
   ```  
 
@@ -298,6 +298,7 @@ To get update events, you can connect to MySQL and update some customer informat
 
   ```
 mysql -h localhost -u root -pStrongPassword
+USE workshop;
 UPDATE customers SET phone='0645341234' WHERE id=1;
   ```
 For the next step, add an EvaluateJsonPath processor to extract the table name. Connect the Route processor to the EvaluateJsonProcessor with insert and update relations only. 
