@@ -311,7 +311,7 @@ In this lab, we will use NiFi to ingest CDC data from MySQL. The MySQL DB has a 
   - Ingest events from MySQL (SRC1_CDCMySQL)
   - Keep only Insert and Update events and formate them in a usable JSON format (SRC1_RouteSQLVerbe to SRC1_SetSchemaName)
   - Insert and update customer data in ElasticSearch where we will build the 360 view (SRC1_MergeRecord to SRC1PutElasticRecord)
-  - Publish update events in Kafka to use them for fraud detection use cases with SAM (SRC1_PublishKafkaUpdate)
+  - Publish update events in Kafka to use them for fraud detection use case (SRC1_PublishKafkaUpdate)
 
 ## Enable MySQL binary logs
 NiFi has a native CDC feature for MySQL databases. To use it, the MySQL DB must be configured to use binary logs. Use the following instructions to enable binary logs for the workshop DB and use ROW format CDC events.
@@ -330,17 +330,25 @@ sudo systemctl restart mysqld.service
 ## Ingest and format data in NiFi
 In the first step of this lab, we will start by a template that we have prepared for the workshop. Templates is a feature of NiFi that can be used to save, export and import NiFi flows as XML files. Start by doawnloading the template from here and save it as an XML file: https://raw.githubusercontent.com/ahadjidj/Streaming-Workshop-with-HDF/master/scripts/HDF-Workshop-Bootstrap.xml
 
-Go to SRC1_DCIngestion PG, click on the upload template button on the left panel, select the flow template that you downloaded previously and click on Upload. Once the template is uploaded, ckick on the template button in the top menu, drag it on the canvas and release. Select your template and click add. Several processors have been added to your flow now. Take some time to open each processor and review its configuration. NiFi has embedded documentation for each processor. If you want to have more information on a particular processor or its parameters, right click on the processor then click on "Usage".
+Go to SRC1_DCIngestion PG, click on the upload template button on the left panel (see below), select the flow template that you have previously downloaded and click on Upload. Once the template is uploaded, ckick on the template button in the top menu, drag it on the canvas and release. Select your template and click add. Several processors have been added to your flow now. 
+
+![Image](https://github.com/ahadjidj/Streaming-Workshop-with-HDF/raw/master/images/Templates.png)
+
+Take some time to open each processor and review its configuration. NiFi has embedded documentation for each processor. If you want to have more information on a particular processor or its parameters, right click on the processor then click on "View Usage".
 
 Note that we are leveraging the variables we defined previously. As you can see in the CaptureChangeMySQL configuration below, we are using variable to set the MySQL configurations rather than setting static configurations. This makes flow versionning, migration and reuse easier.
 
 ![Image](https://github.com/ahadjidj/Streaming-Workshop-with-HDF/raw/master/images/CDC.png)
 
-When you use NiFi templates to export/import flow, NiFi protects your password and delete them. This means that the password property of the CDC processor is not set. Make sure to update the "Password" property with "StrongPassword".
+Note that the CDC processor is in error state as shown by the yellow "!" sign at the left of the processor's name. To investigate the error, put your mouse on the "!" icon and read the error. It says that the processor is using "A Distributed Map Cache Client" that's desactivated. We need to activate it to start using the processor.
 
-We still need to do one last thing before testing our flow. The CaptureChangeMySQL is a stateful processor. It needs to keep track of information on the latest data ingested: binlog position and transaction ID. To do this, NiFi uses a component called Distributed MapCache service which comes with a client and a server parts. The Distributed MapCache Client is already created and configured for you by the template. However, you need to add a Distributed MapCache Server from the controller services menu. Configure it with localhost address as show below.
+![Image](https://github.com/ahadjidj/Streaming-Workshop-with-HDF/raw/master/images/Error.png)
 
-![Image](https://github.com/ahadjidj/Streaming-Workshop-with-HDF/raw/master/images/--------.png)
+The CaptureChangeMySQL is a stateful processor. It needs to keep track of information on the latest data ingested: binlog position and transaction ID. To do this, NiFi uses a component called Distributed MapCache service which comes with a client and a server parts. The Distributed MapCache Client is already created and configured for you by the template. However, you need to start it as we saw in the previous paragraph. Also, you need to add a Distributed MapCache Server from the controller services menu and enable it. 
+
+![Image](https://github.com/ahadjidj/Streaming-Workshop-with-HDF/raw/master/images/MapCacheServices.png)
+
+We still need to do one last thing before testing our flow. When you use NiFi templates to export/import flow, NiFi protects your password and delete them. This means that the password property of the CDC processor is not set. Make sure to update the "Password" property with "StrongPassword".
 
 At this level, you can generate some data to see how CDC events look like. Use the following instructions to insert 10 customers to the MySQL DB: 
 
