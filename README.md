@@ -378,13 +378,11 @@ Now, let's examine what's happening in our flow end-to-end. For teaching purpose
 
 Each configuration row adds a relation to the processor and defines which flow files should be routed to this relation. We use NiFi [Expression Langage (EL)](https://nifi.apache.org/docs/nifi-docs/html/expression-language-guide.html) to implement our logic. Here, we are comparing the value of the Flow File Attribute "cdc.event.type" with the keywords we are looking for: insert, update, etc. NiFi has a rich expression langage that can be used to work with String, Arithmetic or Logical operators. Here we are using the "equals" function.  
 
-
-
-The next step of the flow is an EvaluateJsonPath processor that extracts the table name. This processor can be used to extract information from the content of the flow file (the JSON document) and add them as a flow file attribute. This is often required if you want to dynamically extract data that should be in an attribute (for routing for instance). Here, we are looking to each JSON file, looking for the field "table_name" and adding it as an attribute called "tableName". 
+The next step of the flow is an EvaluateJsonPath processor that extracts the table name. This processor is used to extract information from the content of the flow file (the JSON document) and adds them as a flow file attribute. This is often required if you want to dynamically extract data that should be in an attribute (routing for instance). Here, we are looking to each JSON file, looking for the field "table_name" and adding it as an attribute called "tableName". 
 
 ![Image](https://github.com/ahadjidj/Streaming-Workshop-with-HDF/raw/master/images/ExtractTableName.png)
 
-As you can see, each event has a lot of additional information that are not useful for us. NiFi has several processors that transform data that we can use to keep only attributes of interest here. JoltTransformationProcessor is a very powerful transformation processor that can easily do complex transformation on Json data. We use here with the following Jolt specification. 
+As you can see, each event has a lot of additional information that are not useful for us. The next step is to keep only data of interest and reformat the JSON file to be useful for us. NiFi has several processors that transform data that we can use here. JoltTransformationProcessor is a very powerful transformation processor that can easily do complex transformation on Json data. We use it here with the following Jolt specification. 
 
   ```
 [
@@ -400,9 +398,13 @@ As you can see, each event has a lot of additional information that are not usef
   }
 ]
   ``` 
-Now that we have our data in the target Json format, the last processor (UpdateAttribute) is adding an attribute schema.name with the value of the variable ${source.schema} to set the data schema for the upcoming steps. This prepares our data to use the record-based processors, the customers schema that we added in the SR as well as the different record readers/writters.
+This Jolt specification is telling NiFi to keep only attributes from the "columns" object, to shift them to the left and keep only "value" and "name" fields as follow:
 
-Once you have a clear understaing of what our template is doing, move to the next step to continue the flow development.
+![Image](https://github.com/ahadjidj/Streaming-Workshop-with-HDF/raw/master/images/Jolt.png)
+
+Now that we have our data in the target Json format, the last processor (UpdateAttribute) is adding an attribute schema.name with the value of the variable ${source.schema} to set the data schema for the upcoming steps (source.schema is set to customers). This prepares our data to be used by the record-based processors, the customers schema that we added in the SR as well as the different record readers/writters.
+
+Once you have a clear understaing of what the template is doing, move to the next step to continue the flow development.
 
 ## Store events in ElasticSearch
 Before storing data in ES, let's separate between Insert and Update events first. This is not required since the PutElasticSearchRecord processor supports both insert and update operations. But for other processors, this may be required. Also, some CDC tools generate different schemas for insert and update operations so routing data is required. 
