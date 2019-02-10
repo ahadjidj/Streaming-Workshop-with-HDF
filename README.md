@@ -340,7 +340,7 @@ Note that we are leveraging the variables we defined previously. As you can see 
 
 ![Image](https://github.com/ahadjidj/Streaming-Workshop-with-HDF/raw/master/images/CDC.png)
 
-Note that the CDC processor is in error state as shown by the yellow "!" sign at the left of the processor's name. To investigate the error, put your mouse on the "!" icon and read the error. It says that the processor is using "A Distributed Map Cache Client" that's desactivated. We need to activate it to start using the processor.
+The yellow "!" icon at the top left of the CDC processor show that the processor is in error state. To investigate the error, put your mouse on the "!" icon and read the error. It says that the processor is using "A Distributed Map Cache Client" that's disabled. We need to enable it to start using the processor.
 
 ![Image](https://github.com/ahadjidj/Streaming-Workshop-with-HDF/raw/master/images/Error.png)
 
@@ -348,9 +348,9 @@ The CaptureChangeMySQL is a stateful processor. It needs to keep track of inform
 
 ![Image](https://github.com/ahadjidj/Streaming-Workshop-with-HDF/raw/master/images/MapCacheServices.png)
 
-We still need to do one last thing before testing our flow. When you use NiFi templates to export/import flow, NiFi protects your password and delete them. This means that the password property of the CDC processor is not set. Make sure to update the "Password" property with "StrongPassword".
+We still need to do one last thing before testing our flow. When you use NiFi templates to export/import flows, NiFi protects your passwords and delete them. This means that the password property of the CDC processor is not set. Make sure to update the "Password" property with "StrongPassword".
 
-At this level, you can generate some data to see how CDC events look like. Use the following instructions to insert 10 customers to the MySQL DB: 
+Now, you can generate some data to see how CDC events look like. Use the following instructions to insert 10 customers to the MySQL DB: 
 
   ```
 curl "https://raw.githubusercontent.com/ahadjidj/Streaming-Workshop-with-HDF/master/scripts/create-customers-table.sql" > "create-customers-table.sql"
@@ -368,8 +368,11 @@ mysql -h localhost -u root -pStrongPassword
 USE workshop;
 UPDATE customers SET phone='0645341234' WHERE id=1;
   ```
+If you right click on the CDC processor, then select "view state", you can what information the processor is keeping to the incremental work (see below). During the development phase, it useful to delete the state and make the processor ingest the data again. This avoids touching the database again to get new events. To delete the state of a processor, you need to stop it first. This is a general thing in NiFi: each component needs to be stopped before modifying its configuration.
 
-Let's understand what's happening here. The CDC processor can be configured to listen to some events only. In our use case, we won't use Begin/Commit/DDL statements. But for teaching purposes, we will receive those events and filter them later. The RouteOnAttribute processor is configured as follows:
+![Image](https://github.com/ahadjidj/Streaming-Workshop-with-HDF/raw/master/images/State.png)
+
+Let's examine what's happening here. The CDC processor can be configured to listen to some events only. In our use case, we won't use Begin/Commit/DDL statements. But for teaching purposes, we will receive those events and filter them later. The RouteOnAttribute processor is configured as follows:
 
 ![Image](https://github.com/ahadjidj/Streaming-Workshop-with-HDF/raw/master/images/Route1.png)
 
