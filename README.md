@@ -33,16 +33,17 @@ The objective of this workshop is to build an end to end streaming use case with
   - Use NiFi to ingest CDC data in real time
   - Use Record processors to benefit from improved performance and integration with schema registry
   - Route and filter data using SQL
-  - Deploy and use MiNiFi agents
   - Version flow developments and propagation from dev to prod
   - Integration between NiFi and Kafka to benefit from latest Kafka improvements (transactions, message headers, etc)
+  - Deploy and use MiNiFi agents
+
 
 # Use case
 In this workshop, we will build a simplified streaming use case for a retail company. We will ingest customer data from MySQL Database and web apps logs from web applications to build a 360 view of a customer in real-time. This data can be stored on modern datastores such as HBase, Kudu or ElasticSearch depending on the use case.
 
-Based on these two data streams, we can implement a fraud detection algorithm with ML algorithm or business rules. For instance, if a user updates his account (ex postal address) and buys an item that's more expensive than its average purchase, we may decide to investigate. This can be a sign that his account has been hacked and used to buy an expensive item that will be shipped to a new address. The following picture explains the high level architecture of the use case. 
+Based on these two data streams, we can implement a fraud detection algorithm in real time. For instance, if a user updates his account (ex postal address) and buys an item that's more expensive than its average purchase, we may decide to investigate. This can be a sign that his account has been hacked and used to buy an expensive item that will be shipped to a new address. The following picture explains the high level architecture of the use case. 
 
-For today's lab, we have only 2h30 and we will focus only on the platform and flow management parts. You can come back to this lab later to work on the edge collection, stream processing and analytics parts.
+For today's lab, we have only 2h30 so we will focus only on the platform and flow management parts. You can come back to this lab later to work on the edge collection, stream processing or analytics parts.
 
 ![Image](https://github.com/ahadjidj/Streaming-Workshop-with-HDF/raw/master/images/use_cases.png)
 
@@ -79,7 +80,7 @@ This scripts installs a MySQL Database, ElasticSearch, MiNiFi, Ambari agent and 
     - **workshop/StrongPassword** usable from remote and has full privileges on the workshop DB 
 
 # Lab 2 Simple flow management
-Great! now that you have your HDF cluster up and running, and that you get familiar with it, let's warm with a simple NiFi exercise that will help us introduce basic NiFi notions. If you are already familiar with NiFi, you can skip this section and work on Lab 3 directly.
+Great! now that you have your HDF cluster up and running, and that you got familiar with it, let's warm up with a simple NiFi exercise that will help us introduce basic NiFi notions. If you are already familiar with NiFi, you can skip this section and work on Lab 3 directly.
 
 Let's create a simple NiFi flow that watch the /tmp/input directory, and each time a file is present, compresses it, and moves it to /tmp/output. Go to the main canvas of NiFi, locate the add processor button, drag it onto the canvas and release. Explore the list of available processors. You can use the filter bar to search for a particular processor.
 
@@ -104,14 +105,13 @@ Add and configure the following processors:
       1. For now just leave this on defaults.
 1. Add a CompressContent processor and look at its properties, the defaults should work fine here.
 1. On settings, make sure you set "Auto-terminate relationships" on for failure
-configure it
 1. Now connect up the output of our UpdateAttributes processor to the new CompressContent
 1. Add a PutFile processor
-1. Configure the Directory in the PutFile processor properties. Note the conflict resolution strategy, and set this to replace. (nifi will create this directory for you)
+1. Configure the Directory in the PutFile processor properties (nifi will create this directory for you). Note the conflict resolution strategy, and set it to replace.
 1. Set both success and failure relationships to auto-terminate in the settings tab
 1. Setup the connection between the CompressContent processor and the PutFile processor (only for the success relation!)
 
-Now you have you first complete flow, select the put file processor and press play at the left panel. If you copy a file (for example /var/log/ambari-agent/ambari-agent.log) to the input folder you chose, NiFi will pick it up and send it to the next processor. You can see that there's one flow file in the queue. 
+Now that you have you first flow completed, select the GetFile processor and press play at the left panel. If you copy a file (for example /var/log/ambari-agent/ambari-agent.log) to the input folder you chose, NiFi will pick it up and send it to the next processor. You can see that there's one flow file in the queue. 
 
 ![Image](https://github.com/ahadjidj/Streaming-Workshop-with-HDF/raw/master/images/Queue.png)
 
@@ -119,17 +119,17 @@ To inspect the content of the queue, right click on the queue, list queue, then 
 
 ![Image](https://github.com/ahadjidj/Streaming-Workshop-with-HDF/raw/master/images/Attributes.png)
 
-Now start the next processor (Update Attribute), and inspect the attributes of the flow file in the next queue. You should see new attributes added by the processor.
+Now start the next processor (UpdateAttribute), and inspect the attributes of the flow file in the next queue. You should see new attributes added by the processor.
 
-Next, start the remaining processor and the flow file will processed by the remaining processors. Notice that the statistics in the Compress Content as show below. The size of input data is bigger than output data which shows that our processor is really compressing files. Now check that "/tmp/output" has your file compressed. 
+Next, start the remaining processor and the flow file will processed by the remaining processors. Notice the statistics of the CompressContent as show below. The size of input data is bigger than output data which shows that our processor is really compressing files. Now check that "/tmp/output" has your file compressed. 
 
 ![Image](https://github.com/ahadjidj/Streaming-Workshop-with-HDF/raw/master/images/Compress.png)
 
-Congratulations!! you are now a NiFi flow designer :) note that it's possible to select all the processors (ex. with ctr-A) and start them in a batch. By doing this, your flow with be quickly ingested, compressed and stored in the new location. We did this step by step only to show NiFi working with slow motion. Test your flow again by copying a new file into /tmp/input. You should see the number of IN and OUT files moves to 2 in all the processors.
+Congratulations!! you are now a NiFi flow designer :) note that it's possible to select all the processors (ex. with ctr-A) and start them in a batch. By doing this, your flow will be quickly ingested, compressed and stored in the new location. We did it step by step only to show how NiFi works in slow motion. Test your flow again by copying a new file into /tmp/input. You should see the number of IN and OUT files moves to 2 in all the processors.
 
 ![Image](https://github.com/ahadjidj/Streaming-Workshop-with-HDF/raw/master/images/Two.png)
 
-Adding processors to the root canvas is not a best practice. Things will get messy very quickly. To organise things, NiFi has an object called a process group (PG). PGs can be used to logically organize your NiFi environment, setup ACLs, reuse code, etc. Process Groups can be created beforehand and processors will be added to them directly. Since we already added several processors, we can select them (ctr-A), right click on one of them, select 'Group', give them a name and click on add. ET voila! We are already ready to tackle advanced topics now.
+Adding processors to the root canvas is not a best practice. Things will get messy very quickly. To organise things, NiFi has an object called a process group (PG). PGs can be used to logically organize your NiFi environment, setup ACLs, reuse code, etc. Process Groups can be created beforehand and processors will be added to them directly. Since we have already added several processors, we can select them (ctr-A), right click on one of them, select 'Group', add a name and click on add. ET voila! We are already ready to tackle advanced topics now.
 
 # Lab 3 Platform preparation (admin persona)
 To enforce best practices and governance, there are a few tasks that an admin should do before granting access to the platform. These tasks include:
@@ -262,7 +262,7 @@ Event collected by NiFi will be published to Kafka for further consumption. To p
 ## Create process groups and variables in NiFi
 It's critical to organize your flows when you have a shared NiFi instance. NiFi flows can be organized per data sources where each Process Group defines the processing that should be applied to data coming from this source. If you have several flow developers working on different projects, you can assign roles and privileges to each one of them on those process groups. The PG organisation is also useful to declare variables for each source or project and make flow migration from one environment to another one easier. 
 
-Add 3 PGs as shown below. Note the naming convention (sourceID_description) that will be useful for flows migration and monitoring.
+Add 3 PGs as shown below. Note the naming convention (sourceID_description). It highly recommeneded to use a naming convention to leverage it in flows migration and monitoring.
 
 ![Image](https://github.com/ahadjidj/Streaming-Workshop-with-HDF/raw/master/images/Add_PG.png)
 
@@ -309,11 +309,11 @@ In this lab, we will use NiFi to ingest CDC data from MySQL. The MySQL DB has a 
 ![Image](https://github.com/ahadjidj/Streaming-Workshop-with-HDF/raw/master/images/UC1.png)
 
   - Ingest events from MySQL (SRC1_CDCMySQL)
-  - Keep only Insert and Delete events and format them in a usable JSON format (SRC1_RouteSQLVerbe to SRC1_SetSchemaName)
+  - Keep only Insert and Update events and formate them in a usable JSON format (SRC1_RouteSQLVerbe to SRC1_SetSchemaName)
   - Insert and update customer data in ElasticSearch where we will build the 360 view (SRC1_MergeRecord to SRC1PutElasticRecord)
   - Publish update events in Kafka to use them for fraud detection use cases with SAM (SRC1_PublishKafkaUpdate)
 
-## Import NiFi template
+## Enable MySQL binary logs
 NiFi has a native CDC feature for MySQL databases. To use it, the MySQL DB must be configured to use binary logs. Use the following instructions to enable binary logs for the workshop DB and use ROW format CDC events.
 
   ```
@@ -328,39 +328,50 @@ sudo systemctl restart mysqld.service
   ``` 
 
 ## Ingest and format data in NiFi
-Go to SRC1_DCIngestion PG, add a CaptureChangeMySQL processor and configure it as follows:
+In the first step of this lab, we will start by a template that we have prepared for the workshop. Templates is a feature of NiFi that can be used to save, export and import NiFi flows as XML files. Start by doawnloading the template from here and save it as an XML file: https://raw.githubusercontent.com/ahadjidj/Streaming-Workshop-with-HDF/master/scripts/HDF-Workshop-Bootstrap.xml
+
+Go to SRC1_DCIngestion PG, click on the upload template button on the left panel, select the flow template that you downloaded previously and click on Upload. Once the template is uploaded, ckick on the template button in the top menu, drag it on the canvas and release. Select your template and click add. Several processors have been added to your flow now. Take some time to open each processor and review its configuration. NiFi has embedded documentation for each processor. If you want to have more information on a particular processor or its parameters, right click on the processor then click on "Usage".
+
+Note that we are leveraging the variables we defined previously. As you can see in the CaptureChangeMySQL configuration below, we are using variable to set the MySQL configurations rather than setting static configurations. This makes flow versionning, migration and reuse easier.
 
 ![Image](https://github.com/ahadjidj/Streaming-Workshop-with-HDF/raw/master/images/CDC.png)
 
-Note that we are leveraging the variables we defined previously. The CaptureChangeMySQL needs a MapCache service to store its state (binlog position and transaction ID). Add a MapCache client and server. 
+When you use NiFi templates to export/import flow, NiFi protects your password and delete them. This means that the password property of the CDC processor is not set. Make sure to update the "Password" property with "StrongPassword".
 
-The CDC processor can be configured to listen to some events only. In our use case, we won't use Begin/Commit/DDL statements. But for teaching purposes, we will receive those events and filter them later. Add a RouteOnAttribute processor and configure it as follows:
+We still need to do one last thing before testing our flow. The CaptureChangeMySQL is a stateful processor. It needs to keep track of information on the latest data ingested: binlog position and transaction ID. To do this, NiFi uses a component called Distributed MapCache service which comes with a client and a server parts. The Distributed MapCache Client is already created and configured for you by the template. However, you need to add a Distributed MapCache Server from the controller services menu. Configure it with localhost address as show below.
 
-![Image](https://github.com/ahadjidj/Streaming-Workshop-with-HDF/raw/master/images/Route1.png)
+![Image](https://github.com/ahadjidj/Streaming-Workshop-with-HDF/raw/master/images/--------.png)
 
-At this level, you can generate some data to see how CDC events look like. Use the following instructions to insert 10 customers to the MySQL DB:
+At this level, you can generate some data to see how CDC events look like. Use the following instructions to insert 10 customers to the MySQL DB: 
 
   ```
 curl "https://raw.githubusercontent.com/ahadjidj/Streaming-Workshop-with-HDF/master/scripts/create-customers-table.sql" > "create-customers-table.sql"
 
 mysql -h localhost -u workshop -p"StrongPassword" --database=workshop < create-customers-table.sql
   ``` 
-Use the different relations to see how the data looks like for each event. Make sure that you have 10 flow files in "insert,update" relation, 20 in "unmatched" and 1 in "ddl".
+Now, select and start the CDC processor: you should get several flow files in the first queue. Start the next processor (RouteOnAttribute) and observe how data is distributed over the different relations. Go to each queue and see how the data looks like for each event. Make sure that you have 10 flow files in "insert,update" relation, 20 in "unmatched" and 1 in "ddl".
 
 ![Image](https://github.com/ahadjidj/Streaming-Workshop-with-HDF/raw/master/images/cdcresults.png)
 
-To get update events, you can connect to MySQL and update some customer information. You should get 11 flow files in the "insert,update" relation now.
+To get update events, you can connect to the MySQL DB and update some customer information. You should get 11 flow files in the "insert,update" relation now.
 
   ```
 mysql -h localhost -u root -pStrongPassword
 USE workshop;
 UPDATE customers SET phone='0645341234' WHERE id=1;
   ```
-For the next step, add an EvaluateJsonPath processor to extract the table name. Connect the Route processor to the EvaluateJsonProcessor with insert and update relations only. 
+
+Let's understand what's happening here. The CDC processor can be configured to listen to some events only. In our use case, we won't use Begin/Commit/DDL statements. But for teaching purposes, we will receive those events and filter them later. The RouteOnAttribute processor is configured as follows:
+
+![Image](https://github.com/ahadjidj/Streaming-Workshop-with-HDF/raw/master/images/Route1.png)
+
+Each configuration line adds a relation to the processor and defines which flow files should be routed to this relation. We use NiFi Expression Langage (EL) to implement our logic. Here, we are comparing the value of the Flow File Attribute "cdc.event.type" with the keywords we are looking for: insert, update, etc. NiFi has a rich expression langage that can be used to work with String, Arithmetic or Logical operators. Here we are using the "equals" function.  
+
+The next step of the flow is an EvaluateJsonPath processor that extracts the table name. This processor can be used to extract information from the content of the flow file (the JSON document) and add them as a flow file attribute. This is often required if you want to dynamically extract data that should be in an attribute (for routing for instance). Here, we are looking to each JSON file, looking for the field "table_name" and adding it as an attribute called "tableName". 
 
 ![Image](https://github.com/ahadjidj/Streaming-Workshop-with-HDF/raw/master/images/ExtractTableName.png)
 
-As you can see, each event has a lot of additional information that are not useful for us. To keep only of interest, add a JoltTransformationProcessor with the following Jolt specification:
+As you can see, each event has a lot of additional information that are not useful for us. NiFi has several processors that transform data that we can use to keep only attributes of interest here. JoltTransformationProcessor is a very powerful transformation processor that can easily do complex transformation on Json data. We use here with the following Jolt specification. 
 
   ```
 [
@@ -376,24 +387,39 @@ As you can see, each event has a lot of additional information that are not usef
   }
 ]
   ``` 
-Now that we have our data in the target Json format, let's add an attribute schema.name with the value ${source.schema} to prepare to use record-based processors and our customers schema defined in SR.
+Now that we have our data in the target Json format, the last processor (UpdateAttribute) is adding an attribute schema.name with the value of the variable ${source.schema} to set the data schema for the upcoming steps. This prepares our data to use the record-based processors, the customers schema that we added in the SR as well as the different record readers/writters.
+
+Once you have a clear understaing of what our template is doing, move to the next step to continue the flow development.
 
 ## Store events in ElasticSearch
 Before storing data in ES, let's separate between Insert and Update events first. This is not required since the PutElasticSearchRecord processor supports both insert and update operations. But for other processors, this may be required. Also, some CDC tools generate different schemas for insert and update operations so routing data is required. 
 
-Add a RouteOnAttribute processor like before and separate between inserts and updates. For each type of event, add a MergeRecord and PutElasticSearchHttpRecord configured as follows. Use the Index operation for the Insert events and Update operation for Update events.
+Add a RouteOnAttribute processor like before and separate between inserts and updates. 
+
+![Image](https://github.com/ahadjidj/Streaming-Workshop-with-HDF/raw/master/images/------.png)
+
+Storing data in ElasticSearch event by event is not efficient and will create huge load on the indexing service. To have better performance, we need to batch these events in groups. To do so, we will add two MergeRecord (one for Inserts and one for Updates) and configure them as follows. This configuration means that the flow files will be merged by groups of 1000 events: flow files will be queued up until we have at least 1000 events in the queue, then grouped into one flow file and passed to the next processor. To avoid waiting too long if data rate is not high, we can set the "Max Bin Age" property. Here, we are telling NiFi to merge data after 10 seconds even if we don't reached the minimum of 1000 flow files. You can also set a maximum number of record to merge if you want to avoid having big batches. Min/Max settings can be set on the number of flow files or the size of data.
 
 ![Image](https://github.com/ahadjidj/Streaming-Workshop-with-HDF/raw/master/images/Merge.png)
+
+Add two PutElasticSearchHttpRecord and configure them as follows. Use the Index operation for the Insert events and Update operation for Update events. Note how easy it is to use Record-based processors now since we have already prepared our Schema and Reader/Writer.
+
 ![Image](https://github.com/ahadjidj/Streaming-Workshop-with-HDF/raw/master/images/PutES.png)
 
-Note how easy it is to use Record-based processors now that we have prepared our Schema and Reader/Writer.
+Add a LogAttribute processor after the PutElasticSearchHttpRecord processors: this will be used for debugging only. Connect the different processors (RouteOnAttribute -> MergeContentRecord -> PutElasticSearch -> LogAttribute) as show in the following screenshoot. Start all the processor except the LogAttribute Processor. Notice that data is queued before the merge processors for 10 seconds. After that, data is merged into one flow file and sent to ElasticSearch. Open ElasticSearch UI and check that your customer data has been indexed: http://YOUR-CLUSTER-IP:9200/customers/_search?pretty
 
-Open ElasticSearch UI and check that your customer data has been indexed: http://hdfcluster0.field.hortonworks.com:9200/customers/_search?pretty
+![Image](https://github.com/ahadjidj/Streaming-Workshop-with-HDF/raw/master/images/-----------.png)
 
 ## Publish update events in Kafka
-The last step for this lab is to publish "insert" events in Kafka. These events will be used by SAM to check if there's a risk of fraud. Hence, we need to use Avro record writer in the Kafka processor configuration.
+The last step for this lab is to publish "insert" events in Kafka. These events will be used by the stream processing applictaion to check if there's a risk of fraud. Add a PublishKafkaRecord_1_0 and configure it to use the Avro record writer as follow.
 
 ![Image](https://github.com/ahadjidj/Streaming-Workshop-with-HDF/raw/master/images/KafkaPublish1.png)
+
+Now, connect the Publish Kafka processor to the Log Attribute processor and start it. To check that data is published in Kafka, use the Kafka consumer utility with this command:
+
+  ```
+/usr/hdf/current/kafka-broker/bin/kafka-console-consumer.sh --bootstrap-server YOUR-SERVER-IP:6667 --topic customers --from-beginning
+  ```
 
 ## Version flow in NiFi Registry
 Now that we have our first use case implemented, let's explore the NiFi Flow Registry service. Add a "workshop" bucket in NiFi Registry. In NiFi, right click on the PG SRC1_CDCIngestion, versions and "Start version control". Give a name to your flow and click on save. Check that you flow is saved in the registry.
