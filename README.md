@@ -368,15 +368,17 @@ mysql -h localhost -u root -pStrongPassword
 USE workshop;
 UPDATE customers SET phone='0645341234' WHERE id=1;
   ```
-If you right click on the CDC processor, then select "view state", you can what information the processor is keeping to the incremental work (see below). During the development phase, it useful to delete the state and make the processor ingest the data again. This avoids touching the database again to get new events. To delete the state of a processor, you need to stop it first. This is a general thing in NiFi: each component needs to be stopped before modifying its configuration.
+If you right click on the CDC processor, then select "view state", you can see what information the processor is keeping to do the incremental work (see below). During the development phase, it useful to delete the state and make the processor ingest the data again. This avoids touching the database again to get new events. To delete the state of a processor, you need to stop it first. This is a general thing in NiFi: each component needs to be stopped before modifying its configuration.
 
 ![Image](https://github.com/ahadjidj/Streaming-Workshop-with-HDF/raw/master/images/State.png)
 
-Let's examine what's happening here. The CDC processor can be configured to listen to some events only. In our use case, we won't use Begin/Commit/DDL statements. But for teaching purposes, we will receive those events and filter them later. The RouteOnAttribute processor is configured as follows:
+Now, let's examine what's happening in our flow end-to-end. For teaching purposes, the CDC processor is configured to listen to all events. The Begin/Commit/DDL statements are not useful for us, so we need to filter them with a RouteOnAttribute processor configured as follows:
 
 ![Image](https://github.com/ahadjidj/Streaming-Workshop-with-HDF/raw/master/images/Route1.png)
 
-Each configuration line adds a relation to the processor and defines which flow files should be routed to this relation. We use NiFi Expression Langage (EL) to implement our logic. Here, we are comparing the value of the Flow File Attribute "cdc.event.type" with the keywords we are looking for: insert, update, etc. NiFi has a rich expression langage that can be used to work with String, Arithmetic or Logical operators. Here we are using the "equals" function.  
+Each configuration row adds a relation to the processor and defines which flow files should be routed to this relation. We use NiFi [Expression Langage (EL)](https://nifi.apache.org/docs/nifi-docs/html/expression-language-guide.html) to implement our logic. Here, we are comparing the value of the Flow File Attribute "cdc.event.type" with the keywords we are looking for: insert, update, etc. NiFi has a rich expression langage that can be used to work with String, Arithmetic or Logical operators. Here we are using the "equals" function.  
+
+
 
 The next step of the flow is an EvaluateJsonPath processor that extracts the table name. This processor can be used to extract information from the content of the flow file (the JSON document) and add them as a flow file attribute. This is often required if you want to dynamically extract data that should be in an attribute (for routing for instance). Here, we are looking to each JSON file, looking for the field "table_name" and adding it as an attribute called "tableName". 
 
