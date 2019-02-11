@@ -51,7 +51,7 @@ For today's lab, we have only 2h30 so we will focus only on the platform and flo
 
 ## Create an HDF 3.2 cluster
 
-For this workshop, we will use a one-node HDF cluster with NiFi, NiFi Registry, Kafka, Storm, Schema Registry and Stream Analytics Manager on AWS. These HDF clusters have been previsioned for you. We will work in groups of two SEs. Go to this Google spreadsheet and add your names to one of the available clusters: https://docs.google.com/spreadsheets/d/1SYs7jPPsiMl7pAU14dx_ALenkp1X1YARPmHiKmQqb3w/edit#gid=0 
+For this workshop, we will use a one-node HDF cluster with NiFi, NiFi Registry, Kafka, Storm, Schema Registry and Stream Analytics Manager on AWS. These HDF clusters have been previsioned for you. We will work in groups of two SEs. Go to this Google spreadsheet and add your names to one of the available clusters: https://docs.google.com/spreadsheets/d/1SYs7jPPsiMl7pAU14dx_ALenkp1X1YARPmHiKmQqb3w/edit#gid=0
 
 To access your cluster with SSH, you should use the field PEM key available here https://drive.google.com/drive/folders/1B5GpIfg_WTlWFavSokqN41CvFoEYZNIL
 
