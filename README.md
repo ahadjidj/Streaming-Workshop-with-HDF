@@ -18,13 +18,13 @@
   - Ingest and format data in NiFi
   - Store events in ElasticSearch
   - Publish update events in Kafka
-  - Version flow in NiFi Registry
-- [Lab 5](#lab-5) - Logs data collection with MiNiFi(DataEng persona)
+- [Lab 5](#lab-5) - Version flow in NiFi Registry (DataEng persona)
+- [Lab 6](#lab-6) - Logs data collection with MiNiFi(DataEng persona)
   - Design MiNiFi pipeline
   - Deploy MiNiFi agent
   - Deploy MiNiFi pipeline 
   - Design NiFi pipeline
-- [Lab 6](#lab-6) - TODO Fraud detection with Kafka Streams (Dev persona)
+- [Lab 7](#lab-7) - TODO Fraud detection with Kafka Streams (Dev persona)
 - [Lab 7](#lab-7) - TODO Realtime analytics with Kudu/Impala (Analyst persona)
 
   ---------------
@@ -461,12 +461,43 @@ Now, connect the Publish Kafka processor to the Log Attribute processor and star
 /usr/hdf/current/kafka-broker/bin/kafka-console-consumer.sh --bootstrap-server YOUR-INTERNAL-SERVER-ADDRESS:6667 --topic customers --from-beginning
   ```
 
-## Version flow in NiFi Registry
-Now that we have our first use case implemented, let's explore the NiFi Flow Registry service. Add a "workshop" bucket in NiFi Registry. In NiFi, right click on the PG SRC1_CDCIngestion, versions and "Start version control". Give a name to your flow and click on save. Check that you flow is saved in the registry.
+# Lab 5 Version flow in NiFi Registry
+Now that we have our first use case implemented, let's explore the NiFi Flow Registry service. To save our flow:
+ - Navigate to the root NiFi canvas In NiFi
+ - Right click on the PG SRC1_CDCIngestion
+ - Click on "versions" and "Start version control"
+ - In the popup window, you can see that the Registry an Bucket are already populated because we have only one Registry and one bucket configured. If you have several once, you can use the list menu to chose the right one. Notice also the version which is set to "1"
+ - Add a flow name, a flow description and a version commit, then click on save.
+ 
+![Image](https://github.com/ahadjidj/Streaming-Workshop-with-HDF/raw/master/images/Flowv1.png)
 
-Unfortunately, we don't have another cluster to deploy our flow so let's deploy it in the same instance. Add a new PG to NiFi, click on import, and select your flow. Explore registry features: for instance, change variable in the second instance, make changes in the first instance, and save the new flow version. This should not impact your local variables.
+Notice now the new green check mark on the processor group. This tells us that the processor group has the last version of flows in the registry. 
 
-# Lab 5
+![Image](https://github.com/ahadjidj/Streaming-Workshop-with-HDF/raw/master/images/ok.png)
+
+Now, go to NiFi registry and check that your flow has been successfuly saved.
+
+![Image](https://github.com/ahadjidj/Streaming-Workshop-with-HDF/raw/master/images/ok.png)
+
+Now let's explore the behavior of the registry when we edit our flow. 
+ - Go inside the process group and make several changes (processor position, processor names, processor settings). As you can see, the PG icone turned to a gray star that shows that there are local changes not pushed to the registry. 
+ - Right click on the processor, select "version" menu then "show local changes" to see what are these changes
+ - Right click on the processor, select "version" menu then "commit local changes" to save the new version
+ - Go to the NiFi registry and check that the new version has been successfully saved
+
+![Image](https://github.com/ahadjidj/Streaming-Workshop-with-HDF/raw/master/images/Flowv2.png)
+
+Now let's try to import our flow. Unfortunately, we don't have another cluster to deploy it so let's deploy it in the same instance. 
+ - Click on the PG icon in the top toolbar, drag it and release. 
+ - Click on Import instead of clicking on add
+ - Select your flow, and then select the version you would like to import
+ - Click on import and your PG and its dependencies are added to NiFi
+ 
+![Image](https://github.com/ahadjidj/Streaming-Workshop-with-HDF/raw/master/images/Import.png)
+
+To finish this lab, change the value of a variable in the original PG, commit the updates, and then pull the new version in the second PG. This should not impact your local variables.
+
+# Lab 6
 The objective of this lab is to ingest web applications logs with MiNiFi. Each web application generates logs on customer behaviour on the website. An event is a JSON line that describes a user behaviour on a product web page and gives information on:
   - Id: the user browsing the website. id = 0 means that the user is not connected or not known.
   - Product: the product id that the customer has looked at.
