@@ -407,23 +407,38 @@ Now that we have our data in the target Json format, the last processor (UpdateA
 Once you have a clear understaing of what the template is doing, move to the next step to continue the flow development.
 
 ## Store events in ElasticSearch
-Before storing data in ES, let's separate between Insert and Update events first. This is not required since the PutElasticSearchRecord processor supports both insert and update operations. But for other processors, this may be required. Also, some CDC tools generate different schemas for insert and update operations so routing data is required. 
+Before storing data in ES, let's separate between Insert and Update events. This is not required since the PutElasticSearchRecord processor supports both insert and update operations. But for other processors, this may be required. Also, some CDC tools generate different schemas for insert and update operations so routing data is required in some cases. 
 
-Add a RouteOnAttribute processor like before and separate between inserts and updates. 
+For routing the data, add a RouteOnAttribute processor and configure it to separate between inserts and updates like the following. Connect the UpdateAttribute to this RouteOnAttribute processor.
 
-![Image](https://github.com/ahadjidj/Streaming-Workshop-with-HDF/raw/master/images/------.png)
+![Image](https://github.com/ahadjidj/Streaming-Workshop-with-HDF/raw/master/images/Route.png)
 
-Storing data in ElasticSearch event by event is not efficient and will create huge load on the indexing service. To have better performance, we need to batch these events in groups. To do so, we will add two MergeRecord (one for Inserts and one for Updates) and configure them as follows. This configuration means that the flow files will be merged by groups of 1000 events: flow files will be queued up until we have at least 1000 events in the queue, then grouped into one flow file and passed to the next processor. To avoid waiting too long if data rate is not high, we can set the "Max Bin Age" property. Here, we are telling NiFi to merge data after 10 seconds even if we don't reached the minimum of 1000 flow files. You can also set a maximum number of record to merge if you want to avoid having big batches. Min/Max settings can be set on the number of flow files or the size of data.
+Storing data in ElasticSearch event by event is not efficient and will create huge load on the indexing service. To achieve better performance, we need to batch these events in groups. Add two MergeRecord processors (one for Inserts and one for Updates) and configure them as follows. **Note:** you can use copy paste to create the second MergeRecord processors.
 
 ![Image](https://github.com/ahadjidj/Streaming-Workshop-with-HDF/raw/master/images/Merge.png)
 
-Add two PutElasticSearchHttpRecord and configure them as follows. Use the Index operation for the Insert events and Update operation for Update events. Note how easy it is to use Record-based processors now since we have already prepared our Schema and Reader/Writer.
+This configuration means that the flow files will be merged by groups of 5 events: flow files will be queued up until we have at least 5 events in the queue, then grouped into one flow file and passed to the next processor. The value 5 is for demo only, you would set a higher value in real life (1000 events for instance). To avoid waiting too long if data rate is not high, we can set the "Max Bin Age" property. Here, we are telling NiFi to merge data after 10 seconds even if we don't reached the minimum of 5 flow files. You can also set a maximum number of record to merge if you want to avoid having big batches. Min/Max settings can be set on the number of flow files or the size of data.
+
+Connect the RouteOnAttribute to these MergeRecord processors and use the appropriate relation. Auto-terminate the "Unmatched" relation of the RouteOnAttribute processor.
+
+![Image](https://github.com/ahadjidj/Streaming-Workshop-with-HDF/raw/master/images/Relations.png)
+
+Add two PutElasticSearchHttpRecord and configure them as follows. Use the Index operation for the Insert CDC events and Update operation for Update CDC events. Note how easy it is to use Record-based processors now since we have already prepared our Schema and Reader/Writer. The Elastic processor configuration should be:
+
+- ElasticSearch URL : ${elastic.url}
+- Record Reader : JsonTreeReader
+- Identifier Record Path : /id
+- Index : ${tableName}
+- Type : default
+- Index Operation : index (for the first processor), update (for the second one)
 
 ![Image](https://github.com/ahadjidj/Streaming-Workshop-with-HDF/raw/master/images/PutES.png)
 
-Add a LogAttribute processor after the PutElasticSearchHttpRecord processors: this will be used for debugging only. Connect the different processors (RouteOnAttribute -> MergeContentRecord -> PutElasticSearch -> LogAttribute) as show in the following screenshoot. Start all the processor except the LogAttribute Processor. Notice that data is queued before the merge processors for 10 seconds. After that, data is merged into one flow file and sent to ElasticSearch. Open ElasticSearch UI and check that your customer data has been indexed: http://YOUR-CLUSTER-IP:9200/customers/_search?pretty
+Add a LogAttribute processor after the PutElasticSearchHttpRecord processors: this will be used for debugging only. Connect the different processors (RouteOnAttribute -> MergeContentRecord -> PutElasticSearch -> LogAttribute) as show in the following screenshoot. Be careful to the name of the relations. For instance, connect the Merge processors to the Elastic processors using the merged relation, and auto-terminate the other relations. Start all the processor except the LogAttribute Processor. Notice that data is queued before the merge processors for 10 seconds. Notice also the number of input and output flow files at the Merge processor. 
 
-![Image](https://github.com/ahadjidj/Streaming-Workshop-with-HDF/raw/master/images/-----------.png)
+![Image](https://github.com/ahadjidj/Streaming-Workshop-with-HDF/raw/master/images/Results.png)
+
+Now, open ElasticSearch UI and check that your customer data has been indexed: http://YOUR-CLUSTER-IP:9200/customers/_search?pretty
 
 ## Publish update events in Kafka
 The last step for this lab is to publish "insert" events in Kafka. These events will be used by the stream processing applictaion to check if there's a risk of fraud. Add a PublishKafkaRecord_1_0 and configure it to use the Avro record writer as follow.
