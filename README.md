@@ -434,21 +434,21 @@ Add two PutElasticSearchHttpRecord and configure them as follows. Use the Index 
 
 ![Image](https://github.com/ahadjidj/Streaming-Workshop-with-HDF/raw/master/images/PutES.png)
 
-Add a LogAttribute processor after the PutElasticSearchHttpRecord processors: this will be used for debugging only. Connect the different processors (RouteOnAttribute -> MergeContentRecord -> PutElasticSearch -> LogAttribute) as show in the following screenshoot. Be careful to the name of the relations. For instance, connect the Merge processors to the Elastic processors using the merged relation, and auto-terminate the other relations. Start all the processor except the LogAttribute Processor. Notice that data is queued before the merge processors for 10 seconds. Notice also the number of input and output flow files at the Merge processor. 
+Add a LogAttribute processor after the PutElasticSearchHttpRecord processors: this will be used for debugging only. Connect the different processors (RouteOnAttribute -> MergeRecord -> PutElasticSearch -> LogAttribute) as show in the following screenshoot. Be careful to the name of the relations. For instance, connect the Merge processors to the Elastic processors using the merged relation, and auto-terminate the other relations. Start all the processor except the LogAttribute Processor. Notice that data is queued before the merge processors for 10 seconds. Notice also the number of input and output flow files at the Merge processor. 
 
 ![Image](https://github.com/ahadjidj/Streaming-Workshop-with-HDF/raw/master/images/Results.png)
 
 Now, open ElasticSearch UI and check that your customer data has been indexed: http://YOUR-CLUSTER-IP:9200/customers/_search?pretty
 
 ## Publish update events in Kafka
-The last step for this lab is to publish "insert" events in Kafka. These events will be used by the stream processing applictaion to check if there's a risk of fraud. Add a PublishKafkaRecord_1_0 and configure it to use the Avro record writer as follow.
+The last step for this lab is to publish "update" cdc events in Kafka. These events will be used by the stream processing applictaion to check if there's a risk of fraud. Add a PublishKafkaRecord_1_0 and configure it to use the Avro record writer as follow.
 
 ![Image](https://github.com/ahadjidj/Streaming-Workshop-with-HDF/raw/master/images/KafkaPublish1.png)
 
 Now, connect the Publish Kafka processor to the Log Attribute processor and start it. To check that data is published in Kafka, use the Kafka consumer utility with this command:
 
   ```
-/usr/hdf/current/kafka-broker/bin/kafka-console-consumer.sh --bootstrap-server YOUR-SERVER-IP:6667 --topic customers --from-beginning
+/usr/hdf/current/kafka-broker/bin/kafka-console-consumer.sh --bootstrap-server YOUR-INTERNAL-SERVER-ADDRESS:6667 --topic customers --from-beginning
   ```
 
 ## Version flow in NiFi Registry
