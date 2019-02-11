@@ -12,6 +12,7 @@
   - Create record readers and writters in NiFi
   - Create process groups and variables in NiFi
   - Create events topics in Kafka
+  - Create bucket in NiFi Registry
 - [Lab 4](#lab-4) - MySQL CDC data ingestion (DataEng persona)
   - Configure MySQL to enable binary logs
   - Ingest and format data in NiFi
@@ -302,6 +303,15 @@ kafka.url : USE-YOUR-INTERNAL-CLUSTER-ADDRESS:6667
 /usr/hdf/current/kafka-broker/bin/kafka-topics.sh --zookeeper localhost:2181 --create --topic alerts --partitions 1 --replication-factor 1
 
   ```  
+ ## Create events topics in Kafka
+ 
+As a last step of this lab, let's prepare our NiFi Registry instance. NiFi Registry is a Git like service for your NiFi flow developments. It has flow versionning features that handles the streaming aspect of it: data inflight management, stop/start processors, queue, controller services, etc. Flows are organised in Buckets, which are logical entities that group a set of flows together. A bucket can define a project, an environment, a developper or a team. So let's create a bucket for our lab:
+
+ - Go to NiFi Registry on YOUR-CLUSTER-ADDRESS:61080/nifi-registry
+ - Click on the tool icon at the top right of the UI (settings)
+ - Click on "New bucket", name it HDF Workshop and click on create
+
+![Image](https://github.com/ahadjidj/Streaming-Workshop-with-HDF/raw/master/images/NewBucket.png)
 
 # Lab 4
 In this lab, we will use NiFi to ingest CDC data from MySQL. The MySQL DB has a table "customers" that stores information on our customers. We would like to receive each change in the table as an event (insert, update, etc) and use it with other sources to build a customer 360 view in ElasticSearch. The high level flow can be described as follows:
