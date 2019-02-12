@@ -210,7 +210,7 @@ These events are data coming from Web Application through the MiNiFi agents depl
   ```
 ### Logs_view events
 We also need another logs event (logs_view) that contain only the product browsing session information with the buy and price fields. We will see why later in the labs. Go to Schema Registry and add a new schema with these details:
-  - Name: logs
+  - Name: logs_view
   - Descrption: schema for logs events
   - Type: Avro Schema Provider
   - Schema Group: Kafka
