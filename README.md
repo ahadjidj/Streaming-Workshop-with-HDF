@@ -52,18 +52,11 @@ For today's lab, we have only 2h30 so we will focus only on the platform and flo
 
 ## Create an HDF 3.2 cluster
 
-For this workshop, we will use a one-node HDF cluster with NiFi, NiFi Registry, Kafka, Storm, Schema Registry and Stream Analytics Manager on AWS. These HDF clusters have been previsioned for you. We will work in groups of two SEs. Go to this Google spreadsheet and add your names to one of the available clusters: https://docs.google.com/spreadsheets/d/1SYs7jPPsiMl7pAU14dx_ALenkp1X1YARPmHiKmQqb3w/edit#gid=0
-
-To access your cluster with SSH, you should use the field PEM key available here https://drive.google.com/drive/folders/1B5GpIfg_WTlWFavSokqN41CvFoEYZNIL
-
-Download the field key, change its persmission (chmod 400 field.pem) and connect to the cluster:
-``` ssh -i .ssh/field.pem centos@ip ```
-
-If you would like to create your own cluster (for this lab or later), you can follow the instructions below
-  - Connect to your AWS account and create a CentOs 7 VM with at least 16 GB of RAM (ex: m4.xlarge instance)
+For this workshop, we will use a one-node HDF cluster with NiFi, NiFi Registry, Kafka, Storm, Schema Registry and Stream Analytics Manager on AWS. These HDF clusters have been previsioned for you. Follow the instructions below to create your cluster:
+  - Connect to your AWS account and create a CentOs7 VM with at least 16 GB of RAM (ex: m4.xlarge instance). You can also use any other public or private cloud provider. 
   - Make sure to add at least 150GB of storage to the VM
   - Add tags to your VM as per AWS expense policy : owner, business justification and end date(if applicable)
-  - Open ports required for the lab : 22 (SSH), 8080 (Ambari), 9090 (NiFi), 7788 (SR), 61080 (NiFi Registry), 3306 (MySQL)
+  - Open ports required for the lab : 22 (SSH), 8080 (Ambari), 9090 (NiFi), 7788 (SR), 61080 (NiFi Registry), 3306 (MySQL), 9200 (Elastic)
   - Make sure to create and download an SSH key
   - Once your VM is ready, SSH to your cluster using your PEM key ``` ssh -i field.pem centos@ip ```
   - Launch the cluster install using the following instruction
